@@ -47,9 +47,9 @@ canvas { display:block; border-radius:16px; border:4px solid #FFD700;
     <div class="ctrl-left">
       <div class="gbtn" id="btnLeft">◀</div>
       <div class="gbtn" id="btnRight">▶</div>
-      <div class="gbtn" id="btnCrawl">🐣</div>
     </div>
     <div class="ctrl-right">
+      <div class="gbtn" id="btnCrawl">🐣</div>
       <div class="gbtn" id="btnJump">🦘</div>
     </div>
   </div>
@@ -452,6 +452,181 @@ function drawDog(x, y, dir, frame, hp, maxHp) {
   ctx.restore();
 }
 
+// ── DRAWING: SUSI THE CAT (Level 2 Boss) ─────────────────────────────────────
+function drawSusi(x, y, dir, frame, hp, maxHp) {
+  ctx.save(); ctx.translate(x, y);
+  if(dir<0) ctx.scale(-1,1);
+  const bob = Math.sin(frame*0.15)*3;
+  ctx.save(); ctx.globalAlpha=0.2; ctx.fillStyle='#000';
+  ctx.beginPath(); ctx.ellipse(0,2,26,5,0,0,Math.PI*2); ctx.fill(); ctx.restore();
+  ctx.translate(0, bob);
+
+  // tail curling up
+  ctx.save(); ctx.translate(-28,-10);
+  ctx.strokeStyle='#E8882A'; ctx.lineWidth=7; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(0,0); ctx.quadraticCurveTo(-10,-20,-5,-35); ctx.stroke();
+  ctx.strokeStyle='#fff'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.moveTo(-5,-35); ctx.arc(-5,-38,4,0.5,Math.PI+0.5); ctx.stroke();
+  ctx.restore();
+
+  // body (orange/white)
+  ctx.fillStyle='#E8882A';
+  ctx.beginPath(); ctx.ellipse(0,-5,26,18,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#FFF8F0';
+  ctx.beginPath(); ctx.ellipse(6,-4,18,13,0,0,Math.PI*2); ctx.fill();
+  // stripes
+  ctx.strokeStyle='#C86010'; ctx.lineWidth=2;
+  for(let i of [-14,-8,-2]) {
+    ctx.beginPath(); ctx.moveTo(i,-18); ctx.lineTo(i+2,4); ctx.stroke();
+  }
+
+  // legs
+  const ls = Math.sin(frame*0.22)*12;
+  [[-14,-2],[-6,-2],[6,-2],[14,-2]].forEach(([lx,ly],i)=>{
+    ctx.save(); ctx.translate(lx,ly);
+    ctx.rotate((i%2===0?ls:-ls)*Math.PI/180);
+    ctx.fillStyle='#E8882A';
+    ctx.beginPath(); ctx.roundRect(-4,0,8,14,3); ctx.fill();
+    ctx.fillStyle='#FFF8F0';
+    ctx.beginPath(); ctx.ellipse(0,15,5,3,0,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  });
+
+  // HEAD
+  ctx.save(); ctx.translate(24,-18);
+  ctx.fillStyle='#E8882A';
+  ctx.beginPath(); ctx.ellipse(0,0,18,15,0,0,Math.PI*2); ctx.fill();
+  // pointy ears
+  ctx.fillStyle='#E8882A';
+  ctx.beginPath(); ctx.moveTo(-10,-12); ctx.lineTo(-17,-26); ctx.lineTo(-3,-14); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(10,-12); ctx.lineTo(17,-26); ctx.lineTo(3,-14); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='#FFB0B0';
+  ctx.beginPath(); ctx.moveTo(-9,-13); ctx.lineTo(-14,-22); ctx.lineTo(-4,-14); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(9,-13); ctx.lineTo(14,-22); ctx.lineTo(4,-14); ctx.closePath(); ctx.fill();
+  // white face
+  ctx.fillStyle='#FFF8F0';
+  ctx.beginPath(); ctx.ellipse(2,2,12,10,0,0,Math.PI*2); ctx.fill();
+  // eyes (green with slit)
+  ctx.fillStyle='#22BB44';
+  ctx.beginPath(); ctx.ellipse(-6,-2,5,5,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(6,-2,5,5,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#111'; ctx.beginPath(); ctx.ellipse(-6,-2,1.5,4,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(6,-2,1.5,4,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.6)';
+  ctx.beginPath(); ctx.arc(-4.5,-3.5,1.5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(7.5,-3.5,1.5,0,Math.PI*2); ctx.fill();
+  // nose
+  ctx.fillStyle='#FF9999';
+  ctx.beginPath(); ctx.moveTo(0,4); ctx.lineTo(-3,2); ctx.lineTo(3,2); ctx.closePath(); ctx.fill();
+  // whiskers
+  ctx.strokeStyle='rgba(255,255,255,0.8)'; ctx.lineWidth=1;
+  [[-4,5,-16,3],[-4,6,-16,8],[4,5,16,3],[4,6,16,8]].forEach(([x1,y1,x2,y2])=>{
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  });
+  // smile
+  ctx.strokeStyle='#C86010'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.arc(0,7,5,0.2,Math.PI-0.2); ctx.stroke();
+  ctx.restore(); // head
+
+  if(hp>0) {
+    ctx.fillStyle='rgba(0,0,0,0.55)';
+    ctx.beginPath(); ctx.roundRect(-34,-58,68,12,4); ctx.fill();
+    ctx.fillStyle=hp/maxHp>0.5?'#4CAF50':hp/maxHp>0.25?'#FF9800':'#F44336';
+    ctx.beginPath(); ctx.roundRect(-34,-58,68*(hp/maxHp),12,4); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='bold 9px Arial'; ctx.textAlign='center';
+    ctx.fillText('🐱 SUSI',0,-48);
+  }
+  ctx.restore();
+}
+
+// ── DRAWING: MICO THE MONKEY (Level 3 Boss) ────────────────────────────────────
+function drawMico(x, y, dir, frame, hp, maxHp) {
+  ctx.save(); ctx.translate(x, y);
+  if(dir<0) ctx.scale(-1,1);
+  const bob = Math.sin(frame*0.18)*4;
+  ctx.save(); ctx.globalAlpha=0.2; ctx.fillStyle='#000';
+  ctx.beginPath(); ctx.ellipse(0,2,28,5,0,0,Math.PI*2); ctx.fill(); ctx.restore();
+  ctx.translate(0, bob);
+
+  // curly tail
+  ctx.save(); ctx.translate(-28,-5);
+  ctx.strokeStyle='#8B4513'; ctx.lineWidth=7; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(0,0); ctx.bezierCurveTo(-15,0,-20,-20,-10,-28); ctx.stroke();
+  ctx.strokeStyle='#C68030'; ctx.lineWidth=4;
+  ctx.beginPath(); ctx.moveTo(0,0); ctx.bezierCurveTo(-12,0,-16,-16,-8,-24); ctx.stroke();
+  ctx.restore();
+
+  // body
+  ctx.fillStyle='#8B4513';
+  ctx.beginPath(); ctx.ellipse(0,-5,28,20,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#DEB887';
+  ctx.beginPath(); ctx.ellipse(4,-4,18,14,0,0,Math.PI*2); ctx.fill();
+
+  // arms
+  const as = Math.sin(frame*0.2)*20;
+  [-1,1].forEach((side,i)=>{
+    ctx.save(); ctx.translate(side*26,-18);
+    ctx.rotate(side*(as-20)*Math.PI/180);
+    ctx.fillStyle='#8B4513';
+    ctx.beginPath(); ctx.roundRect(-4,0,9,22,5); ctx.fill();
+    ctx.fillStyle='#DEB887';
+    ctx.beginPath(); ctx.arc(0,24,6,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  });
+
+  // legs
+  const ls2 = Math.sin(frame*0.22)*15;
+  [[-12,-2],[-4,-2],[4,-2],[12,-2]].forEach(([lx,ly],i)=>{
+    ctx.save(); ctx.translate(lx,ly);
+    ctx.rotate((i%2===0?ls2:-ls2)*Math.PI/180);
+    ctx.fillStyle='#8B4513';
+    ctx.beginPath(); ctx.roundRect(-4,0,9,17,4); ctx.fill();
+    ctx.fillStyle='#DEB887';
+    ctx.beginPath(); ctx.ellipse(0,18,5,3,0,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  });
+
+  // HEAD
+  ctx.save(); ctx.translate(22,-24);
+  ctx.fillStyle='#8B4513';
+  ctx.beginPath(); ctx.ellipse(0,0,20,18,0,0,Math.PI*2); ctx.fill();
+  // round ears
+  ctx.fillStyle='#8B4513';
+  ctx.beginPath(); ctx.arc(-18,0,9,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(18,0,9,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#DEB887';
+  ctx.beginPath(); ctx.arc(-18,0,5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(18,0,5,0,Math.PI*2); ctx.fill();
+  // face
+  ctx.fillStyle='#DEB887';
+  ctx.beginPath(); ctx.ellipse(0,2,14,13,0,0,Math.PI*2); ctx.fill();
+  // eyes
+  ctx.fillStyle='#1A0A00';
+  ctx.beginPath(); ctx.arc(-6,-3,5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(6,-3,5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#fff';
+  ctx.beginPath(); ctx.arc(-4.5,-4.5,2,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(7.5,-4.5,2,0,Math.PI*2); ctx.fill();
+  // big smile
+  ctx.strokeStyle='#8B2500'; ctx.lineWidth=2; ctx.lineCap='round';
+  ctx.beginPath(); ctx.arc(0,7,9,0.1,Math.PI-0.1); ctx.stroke();
+  // nostrils
+  ctx.fillStyle='#6B3410';
+  ctx.beginPath(); ctx.arc(-3,4,2,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(3,4,2,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+
+  if(hp>0) {
+    ctx.fillStyle='rgba(0,0,0,0.55)';
+    ctx.beginPath(); ctx.roundRect(-34,-68,68,12,4); ctx.fill();
+    ctx.fillStyle=hp/maxHp>0.5?'#4CAF50':hp/maxHp>0.25?'#FF9800':'#F44336';
+    ctx.beginPath(); ctx.roundRect(-34,-68,68*(hp/maxHp),12,4); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='bold 9px Arial'; ctx.textAlign='center';
+    ctx.fillText('🐒 MICO',0,-58);
+  }
+  ctx.restore();
+}
+
 // ── PARTICLES ─────────────────────────────────────────────────────────────────
 let particles = [];
 function spawnParticles(x, y, color, count=8, emoji=null) {
@@ -496,7 +671,7 @@ function drawCollectible(c, frame) {
   const bob = Math.sin(frame*0.05 + c.x*0.01)*4;
   ctx.save();
   ctx.translate(c.x + c.w/2, c.y + c.h/2 + bob);
-  const emojis = { biberon:'🍼', toy:'⭐', diaper:'👶', turbo:'👟' };
+  const emojis = { biberon:'🍼', toy:'⭐', diaper:'👶', turbo:'👟', tetero:'🍼', galleta:'🍪', peluche:'🧸', cobija:'🌙' };
   ctx.font = '28px serif';
   ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.fillText(emojis[c.type]||'⭐',0,0);
@@ -509,49 +684,93 @@ function drawCollectible(c, frame) {
 }
 
 function drawObstacle(o) {
+  if(!o.active && (o.type==='olla'||o.type==='almohada')) return;
+  if(o.x<-50) return;
   ctx.save();
   ctx.translate(o.x + o.w/2, o.y + o.h/2);
-  if(o.type==='toycar') {
-    ctx.font='34px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText('🚗',0,0);
-  } else if(o.type==='block') {
-    ctx.font='30px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText('🧸',0,0);
+  const emojis={toycar:'🚗',block:'🧸',cucaracha:'🪳',olla:'🪣',charco:'💧',almohada:'🛏️',ropa:'👕',zapato:'👟'};
+  ctx.font=(o.type==='cucaracha'?'22':'30')+'px serif';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  if(o.type==='charco') {
+    ctx.globalAlpha=0.6;
+    ctx.fillStyle='#4FC3F7';
+    ctx.beginPath(); ctx.ellipse(0,0,o.w/2,o.h*1.5,0,0,Math.PI*2); ctx.fill();
+    ctx.globalAlpha=1;
+  } else {
+    ctx.fillText(emojis[o.type]||'⚠️',0,0);
   }
   ctx.restore();
 }
 
 // ── BACKGROUND: LA SALA ───────────────────────────────────────────────────────
 function drawBackground(camX) {
-  // sky/wall gradient
-  const wallGrad = ctx.createLinearGradient(0,0,0,H);
-  wallGrad.addColorStop(0,'#FFF8E7');
-  wallGrad.addColorStop(0.7,'#FFE4B5');
-  wallGrad.addColorStop(1,'#DEB887');
-  ctx.fillStyle=wallGrad; ctx.fillRect(0,0,W,H);
-
-  // wallpaper pattern
-  ctx.globalAlpha=0.07;
-  ctx.fillStyle='#8B4513';
-  for(let bx=(-camX*0.1)%60-60; bx<W+60; bx+=60) {
-    for(let by=0; by<H*0.7; by+=40) {
-      ctx.font='20px serif'; ctx.fillText('🌸',bx,by);
-    }
+  const theme = game.level?.theme || 'sala';
+  if(theme==='cocina') {
+    // Kitchen: cream walls with tile lines
+    ctx.fillStyle='#FFFDE7'; ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='#E0E0E0'; ctx.lineWidth=1;
+    for(let ty=0; ty<FLOOR; ty+=40) { ctx.beginPath(); ctx.moveTo(0,ty); ctx.lineTo(W,ty); ctx.stroke(); }
+    for(let tx=(-camX*0.05)%60-60; tx<W+60; tx+=60) { ctx.beginPath(); ctx.moveTo(tx,0); ctx.lineTo(tx,FLOOR); ctx.stroke(); }
+    // yellow accent top
+    ctx.fillStyle='#FFF9C4'; ctx.fillRect(0,0,W,60);
+    ctx.fillStyle='#F9A825'; ctx.fillRect(0,58,W,4);
+    // baseboard
+    ctx.fillStyle='#A07820'; ctx.fillRect(0,FLOOR+58,W,10);
+    return;
   }
+  if(theme==='habitacion') {
+    // Bedroom: lavender walls
+    const wg = ctx.createLinearGradient(0,0,0,H);
+    wg.addColorStop(0,'#EDE7F6'); wg.addColorStop(0.7,'#D1C4E9'); wg.addColorStop(1,'#B39DDB');
+    ctx.fillStyle=wg; ctx.fillRect(0,0,W,H);
+    // subtle pattern
+    ctx.globalAlpha=0.05; ctx.fillStyle='#7E57C2';
+    for(let bx=(-camX*0.1)%80-80; bx<W+80; bx+=80)
+      for(let by=0; by<H*0.7; by+=80) { ctx.font='30px serif'; ctx.fillText('⭐',bx,by); }
+    ctx.globalAlpha=1;
+    ctx.fillStyle='#7E57C2'; ctx.fillRect(0,FLOOR+58,W,10);
+    return;
+  }
+  // Default: La Sala
+  const wallGrad = ctx.createLinearGradient(0,0,0,H);
+  wallGrad.addColorStop(0,'#FFF8E7'); wallGrad.addColorStop(0.7,'#FFE4B5'); wallGrad.addColorStop(1,'#DEB887');
+  ctx.fillStyle=wallGrad; ctx.fillRect(0,0,W,H);
+  ctx.globalAlpha=0.07; ctx.fillStyle='#8B4513';
+  for(let bx=(-camX*0.1)%60-60; bx<W+60; bx+=60)
+    for(let by=0; by<H*0.7; by+=40) { ctx.font='20px serif'; ctx.fillText('🌸',bx,by); }
   ctx.globalAlpha=1;
-
-  // baseboard
-  ctx.fillStyle='#8B6914';
-  ctx.fillRect(0, FLOOR+60, W, 10);
-  ctx.fillStyle='#A07820';
-  ctx.fillRect(0, FLOOR+58, W, 4);
+  ctx.fillStyle='#8B6914'; ctx.fillRect(0,FLOOR+60,W,10);
+  ctx.fillStyle='#A07820'; ctx.fillRect(0,FLOOR+58,W,4);
 }
 
 function drawFloor(camX) {
-  // carpet/play mat
+  const theme = game.level?.theme || 'sala';
+  if(theme==='cocina') {
+    // Checkered floor
+    const tileSize=40;
+    for(let tx=(-camX)%tileSize-tileSize; tx<W+tileSize; tx+=tileSize) {
+      const col=Math.floor((tx+camX)/tileSize);
+      ctx.fillStyle=col%2===0?'#FAFAFA':'#E0E0E0';
+      ctx.fillRect(tx,FLOOR,tileSize,H-FLOOR);
+    }
+    return;
+  }
+  if(theme==='habitacion') {
+    // Wood floor planks
+    ctx.fillStyle='#D2A679'; ctx.fillRect(0,FLOOR,W,H-FLOOR);
+    ctx.strokeStyle='#B8874A'; ctx.lineWidth=1;
+    const pw=120; const off=(-camX)%pw;
+    for(let tx=off-pw; tx<W+pw; tx+=pw) {
+      ctx.beginPath(); ctx.moveTo(tx,FLOOR); ctx.lineTo(tx,H); ctx.stroke();
+    }
+    for(let ty=FLOOR; ty<H; ty+=20) {
+      ctx.beginPath(); ctx.moveTo(0,ty); ctx.lineTo(W,ty); ctx.stroke();
+    }
+    return;
+  }
+  // La Sala — carpet/play mat
   const matGrad = ctx.createLinearGradient(0,FLOOR,0,H);
-  matGrad.addColorStop(0,'#B0C4DE');
-  matGrad.addColorStop(1,'#778899');
+  matGrad.addColorStop(0,'#B0C4DE'); matGrad.addColorStop(1,'#778899');
   ctx.fillStyle=matGrad;
   ctx.fillRect(0, FLOOR, W, H-FLOOR);
 
@@ -605,11 +824,52 @@ function drawPlatform(p) {
     ctx.fillStyle='#6D4C41';
     ctx.fillRect(p.x+8,p.y+8,8,p.h-8);
     ctx.fillRect(p.x+p.w-16,p.y+8,8,p.h-8);
+  } else if(p.type==='counter') {
+    // Kitchen counter
+    ctx.fillStyle='#8D6E63'; ctx.beginPath(); ctx.roundRect(p.x,p.y,p.w,p.h,4); ctx.fill();
+    ctx.fillStyle='#BDBDBD'; ctx.beginPath(); ctx.roundRect(p.x-4,p.y,p.w+8,10,3); ctx.fill();
+    ctx.fillStyle='#E0E0E0'; ctx.beginPath(); ctx.roundRect(p.x-2,p.y+1,p.w+4,6,2); ctx.fill();
+    // cabinet doors
+    const dw=60;
+    for(let dx=p.x+4; dx<p.x+p.w-8; dx+=dw+4) {
+      ctx.fillStyle='#A1887F'; ctx.beginPath(); ctx.roundRect(dx,p.y+14,Math.min(dw,p.x+p.w-8-dx),p.h-18,3); ctx.fill();
+      ctx.fillStyle='#795548'; ctx.beginPath(); ctx.arc(dx+Math.min(dw,p.x+p.w-8-dx)/2, p.y+p.h/2+4, 3,0,Math.PI*2); ctx.fill();
+    }
+  } else if(p.type==='stool') {
+    ctx.fillStyle='#BDBDBD'; ctx.beginPath(); ctx.roundRect(p.x,p.y,p.w,10,4); ctx.fill();
+    ctx.fillStyle='#9E9E9E'; ctx.fillRect(p.x+10,p.y+10,8,p.h-10); ctx.fillRect(p.x+p.w-18,p.y+10,8,p.h-10);
+  } else if(p.type==='bed') {
+    // Bed with mattress, pillow, and bedframe
+    ctx.fillStyle='#6D4C41'; ctx.beginPath(); ctx.roundRect(p.x,p.y,p.w,p.h,6); ctx.fill();
+    ctx.fillStyle='#F8BBD0'; ctx.beginPath(); ctx.roundRect(p.x+4,p.y+4,p.w-8,p.h-10,5); ctx.fill();
+    // pillow
+    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.roundRect(p.x+p.w-60,p.y+6,50,24,8); ctx.fill();
+    ctx.strokeStyle='#F0F0F0'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.roundRect(p.x+p.w-58,p.y+8,46,20,6); ctx.stroke();
+    // blanket fold
+    ctx.fillStyle='#CE93D8'; ctx.beginPath(); ctx.roundRect(p.x+4,p.y+16,p.w*0.6,12,4); ctx.fill();
+    // headboard
+    ctx.fillStyle='#5D4037'; ctx.beginPath(); ctx.roundRect(p.x+p.w-8,p.y-25,16,p.h+25,4); ctx.fill();
+  } else if(p.type==='nightstand') {
+    ctx.fillStyle='#8D6E63'; ctx.beginPath(); ctx.roundRect(p.x,p.y,p.w,p.h,4); ctx.fill();
+    ctx.fillStyle='#795548'; ctx.beginPath(); ctx.roundRect(p.x+4,p.y+8,p.w-8,p.h-14,3); ctx.fill();
+    ctx.fillStyle='#6D4C41'; ctx.beginPath(); ctx.arc(p.x+p.w/2,p.y+p.h/2+4,4,0,Math.PI*2); ctx.fill();
+    // lamp
+    ctx.fillStyle='#FFF9C4';
+    ctx.beginPath(); ctx.moveTo(p.x+p.w/2-12,p.y-2); ctx.lineTo(p.x+p.w/2+12,p.y-2); ctx.lineTo(p.x+p.w/2+6,p.y-22); ctx.lineTo(p.x+p.w/2-6,p.y-22); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#F9A825'; ctx.fillRect(p.x+p.w/2-1,p.y-30,3,10);
+    ctx.fillStyle='rgba(255,240,100,0.2)'; ctx.beginPath(); ctx.arc(p.x+p.w/2,p.y-20,30,0,Math.PI*2); ctx.fill();
   }
 }
 
 // ── LEVEL DATA ────────────────────────────────────────────────────────────────
-function buildLevel() {
+function buildLevel(num) {
+  if(num===2) return buildLevel2();
+  if(num===3) return buildLevel3();
+  return buildLevel1();
+}
+
+function buildLevel1() {
   const platforms = [
     // sofas (first sofa like in photo)
     { x:200, y:FLOOR-60, w:200, h:60, type:'sofa' },
@@ -653,49 +913,151 @@ function buildLevel() {
     { x:1760, y:FLOOR-105, w:32, h:32, type:'toy' },
   ];
 
-  return { platforms, obstacles, collectibles, width: 2400 };
+  return { platforms, obstacles, collectibles, width:2400, name:'La Sala', theme:'sala',
+    crawlZones:[], boss:{type:'mambo',x:2050,y:FLOOR-80,w:80,h:80,hp:4,maxHp:4,alive:false,bossActive:false,vx:3,vy:0,dir:1,onGround:false,frame:0,triggerX:1900,minX:1950,maxX:2280,name:'MAMBO 🐕'} };
+}
+
+function buildLevel2() {
+  const CY = FLOOR - 90; // counter top Y
+  const platforms = [
+    {x:150, y:CY, w:200, h:90, type:'counter'},
+    {x:480, y:CY, w:180, h:90, type:'counter'},
+    {x:750, y:FLOOR-50, w:120, h:50, type:'stool'},
+    {x:980, y:CY, w:220, h:90, type:'counter'},
+    {x:1290, y:FLOOR-50, w:100, h:50, type:'stool'},
+    {x:1480, y:CY, w:200, h:90, type:'counter'},
+    {x:1780, y:FLOOR-50, w:120, h:50, type:'stool'},
+    {x:1980, y:CY, w:320, h:90, type:'counter'},
+  ];
+  const obstacles = [
+    {x:320,  y:FLOOR-28, w:28, h:28, type:'cucaracha', vx:2,   patrolX1:280,  patrolX2:430},
+    {x:680,  y:FLOOR-28, w:28, h:28, type:'cucaracha', vx:-2,  patrolX1:600,  patrolX2:740},
+    {x:900,  y:FLOOR-28, w:28, h:28, type:'cucaracha', vx:2.5, patrolX1:860,  patrolX2:970},
+    {x:1380, y:FLOOR-28, w:28, h:28, type:'cucaracha', vx:-2,  patrolX1:1300, patrolX2:1470},
+    {x:1850, y:FLOOR-28, w:28, h:28, type:'cucaracha', vx:2,   patrolX1:1800, patrolX2:1970},
+    // charcos
+    {x:430,  y:FLOOR-8, w:90, h:8, type:'charco'},
+    {x:1240, y:FLOOR-8, w:80, h:8, type:'charco'},
+    {x:1740, y:FLOOR-8, w:70, h:8, type:'charco'},
+    // ollas cayendo (spawnX, timer, active)
+    {x:-99, y:-30, w:28, h:28, type:'olla', active:false, spawnX:600,  timer:0, spawnInterval:200, vy:0},
+    {x:-99, y:-30, w:28, h:28, type:'olla', active:false, spawnX:1100, timer:80, spawnInterval:220, vy:0},
+    {x:-99, y:-30, w:28, h:28, type:'olla', active:false, spawnX:1700, timer:40, spawnInterval:190, vy:0},
+  ];
+  const collectibles = [
+    {x:180,  y:CY-40,    w:32, h:32, type:'tetero'},
+    {x:520,  y:CY-40,    w:32, h:32, type:'toy'},
+    {x:800,  y:FLOOR-90, w:32, h:32, type:'galleta'},
+    {x:1020, y:CY-40,    w:32, h:32, type:'toy'},
+    {x:1060, y:CY-40,    w:32, h:32, type:'tetero'},
+    {x:1320, y:FLOOR-90, w:32, h:32, type:'peluche'},
+    {x:1510, y:CY-40,    w:32, h:32, type:'toy'},
+    {x:1820, y:FLOOR-90, w:32, h:32, type:'cobija'},
+    {x:2000, y:CY-40,    w:32, h:32, type:'toy'},
+  ];
+  const crawlZones = [
+    {x1:650,  x2:745,  ceilY:FLOOR-34},
+    {x1:1245, x2:1345, ceilY:FLOOR-34},
+    {x1:1745, x2:1840, ceilY:FLOOR-34},
+  ];
+  return { platforms, obstacles, collectibles, crawlZones, width:2500, name:'La Cocina', theme:'cocina',
+    boss:{type:'susi',x:2100,y:FLOOR-70,w:70,h:70,hp:5,maxHp:5,alive:false,bossActive:false,vx:4,vy:0,dir:1,onGround:false,frame:0,triggerX:2000,minX:2000,maxX:2380,name:'SUSI 🐱'} };
+}
+
+function buildLevel3() {
+  const BY = FLOOR - 100; // bed top Y
+  const platforms = [
+    {x:120,  y:BY,      w:250, h:100, type:'bed'},
+    {x:460,  y:FLOOR-55, w:100, h:55, type:'nightstand'},
+    {x:650,  y:BY,      w:280, h:100, type:'bed'},
+    {x:1040, y:FLOOR-55, w:100, h:55, type:'nightstand'},
+    {x:1200, y:BY,      w:200, h:100, type:'bed'},
+    {x:1490, y:FLOOR-55, w:100, h:55, type:'nightstand'},
+    {x:1670, y:BY,      w:280, h:100, type:'bed'},
+    {x:2040, y:BY,      w:320, h:100, type:'bed'},
+  ];
+  const obstacles = [
+    {x:380,  y:FLOOR-22, w:50, h:22, type:'ropa',   vx:0},
+    {x:580,  y:FLOOR-26, w:26, h:26, type:'zapato',  vx:1.5, patrolX1:540, patrolX2:650},
+    {x:980,  y:FLOOR-22, w:50, h:22, type:'ropa',   vx:0},
+    {x:1150, y:FLOOR-26, w:26, h:26, type:'zapato',  vx:-1.5,patrolX1:1100,patrolX2:1200},
+    {x:1430, y:FLOOR-22, w:50, h:22, type:'ropa',   vx:0},
+    {x:1600, y:FLOOR-26, w:26, h:26, type:'zapato',  vx:1.8, patrolX1:1560,patrolX2:1660},
+    {x:1900, y:FLOOR-22, w:50, h:22, type:'ropa',   vx:0},
+    // almohadas spawn
+    {x:-99, y:-30, w:40, h:20, type:'almohada', active:false, spawnX:2600, timer:0, spawnInterval:180, vx:-4, vy:-3},
+    {x:-99, y:-30, w:40, h:20, type:'almohada', active:false, spawnX:2600, timer:90, spawnInterval:180, vx:-4, vy:-5},
+  ];
+  const collectibles = [
+    {x:140,  y:BY-40,    w:32, h:32, type:'tetero'},
+    {x:480,  y:FLOOR-90, w:32, h:32, type:'toy'},
+    {x:680,  y:BY-40,    w:32, h:32, type:'galleta'},
+    {x:720,  y:BY-40,    w:32, h:32, type:'toy'},
+    {x:1060, y:FLOOR-90, w:32, h:32, type:'peluche'},
+    {x:1220, y:BY-40,    w:32, h:32, type:'toy'},
+    {x:1510, y:FLOOR-90, w:32, h:32, type:'cobija'},
+    {x:1690, y:BY-40,    w:32, h:32, type:'toy'},
+    {x:2060, y:BY-40,    w:32, h:32, type:'tetero'},
+  ];
+  const crawlZones = [
+    {x1:120,  x2:370,  ceilY:FLOOR-35},
+    {x1:650,  x2:930,  ceilY:FLOOR-35},
+    {x1:1200, x2:1490, ceilY:FLOOR-35},
+    {x1:1670, x2:2040, ceilY:FLOOR-35},
+  ];
+  return { platforms, obstacles, collectibles, crawlZones, width:2700, name:'La Habitación', theme:'habitacion',
+    boss:{type:'mico',x:2200,y:FLOOR-85,w:80,h:85,hp:6,maxHp:6,alive:false,bossActive:false,vx:3.5,vy:0,dir:1,onGround:false,frame:0,triggerX:2100,minX:2100,maxX:2550,name:'MICO 🐒'} };
 }
 
 // ── GAME STATE ────────────────────────────────────────────────────────────────
 let game;
 function initGame() {
-  const level = buildLevel();
   game = {
-    state: 'menu',   // menu | playing | boss | win | gameover
+    state: 'menu',
     frame: 0,
     score: 0,
-    level,
+    levelNum: 1,
+    level: null,
     camX: 0,
-    // PLAYER
     p: {
       x:80, y:FLOOR-60, w:32, h:55,
       vx:0, vy:0, dir:1,
       onGround:false,
-      state:'idle',   // idle walk jump crawl hurt
+      state:'idle',
       hp:3, maxHp:3,
       hurtTimer:0,
       crawling:false,
       standHeight:55, crawlHeight:28,
-      jumpBufferTimer:0,
       turboPower:0,
       diaperShield:0,
+      superJump:0,
+      doublePoints:0,
     },
-    // BOSS
-    boss: {
-      x:2050, y:FLOOR-80, w:80, h:80,
-      hp:4, maxHp:4, alive:false,
-      vx:3, vy:0, dir:1,
-      onGround:false,
-      attackTimer:0,
-      bossActive:false,
-    },
-    obstacles: level.obstacles.map(o => ({...o})),
-    collectibles: level.collectibles.map(c=>({...c,collected:false})),
-    platforms: level.platforms,
-    stars:[],
+    boss: null,
+    obstacles:[], collectibles:[], platforms:[], crawlZones:[],
     message:'', msgTimer:0,
     jumpPressed:false,
+    levelCompleteTimer:0,
   };
+  loadLevel(1);
+}
+
+function loadLevel(num) {
+  const level = buildLevel(num);
+  game.levelNum = num;
+  game.level = level;
+  game.obstacles    = level.obstacles.map(o=>({...o}));
+  game.collectibles = level.collectibles.map(c=>({...c,collected:false}));
+  game.platforms    = level.platforms;
+  game.crawlZones   = level.crawlZones || [];
+  game.boss         = {...level.boss};
+  game.camX = 0;
+  // reset player position (keep score & hp)
+  game.p.x = 80; game.p.y = FLOOR - game.p.standHeight;
+  game.p.vx = 0; game.p.vy = 0;
+  game.p.crawling = false; game.p.h = game.p.standHeight;
+  game.p.hurtTimer = 0;
+  game.p.turboPower = 0; game.p.superJump = 0; game.p.doublePoints = 0;
 }
 
 function showMsg(text, dur=120) {
@@ -728,20 +1090,54 @@ function update() {
 
   if(game.msgTimer > 0) game.msgTimer--;
 
+  // ─ LEVEL COMPLETE TRANSITION ─
+  if(game.state === 'levelComplete') {
+    game.levelCompleteTimer--;
+    if(game.levelCompleteTimer <= 0) {
+      const next = game.levelNum + 1;
+      if(next > 3) { game.state='win'; return; }
+      loadLevel(next);
+      game.state = 'playing';
+      showMsg(`¡Nivel ${next}: ${game.level.name}! 🎮`, 180);
+    }
+    updateParticles(); return;
+  }
+
   // ─ PLAYER ─
   if(p.hurtTimer > 0) p.hurtTimer--;
   if(p.turboPower > 0) p.turboPower--;
   if(p.diaperShield > 0) p.diaperShield--;
+  if(p.superJump > 0) p.superJump--;
+  if(p.doublePoints > 0) p.doublePoints--;
 
-  // Crawl toggle
+  // ─ CRAWL ZONES — force crawl under low ceilings ─
+  let inCrawlZone = false;
+  for(const z of game.crawlZones) {
+    if(p.x + p.w > z.x1 && p.x < z.x2) {
+      inCrawlZone = true;
+      if(!p.crawling && p.y < z.ceilY) {
+        // force crawl
+        if(!p.crawling) {
+          p.crawling = true; p.h = p.crawlHeight;
+          p.y = Math.max(p.y, z.ceilY - p.crawlHeight);
+        }
+        showMsg('¡Gatear aquí! 🐣', 5);
+      }
+    }
+  }
+  // auto-stand after leaving zone
+  if(!inCrawlZone && p.crawling && !keys.crawl) {
+    p.crawling = false; p.h = p.standHeight;
+    p.y -= p.standHeight - p.crawlHeight;
+  }
+
+  // Crawl toggle (manual)
   const wantCrawl = keys.crawl;
   if(wantCrawl && !p.crawling) {
-    p.crawling = true;
-    p.h = p.crawlHeight;
+    p.crawling = true; p.h = p.crawlHeight;
     p.y += p.standHeight - p.crawlHeight;
-  } else if(!wantCrawl && p.crawling) {
-    p.crawling = false;
-    p.h = p.standHeight;
+  } else if(!wantCrawl && !inCrawlZone && p.crawling) {
+    p.crawling = false; p.h = p.standHeight;
     p.y -= p.standHeight - p.crawlHeight;
   }
 
@@ -752,147 +1148,181 @@ function update() {
   else p.vx *= 0.7;
 
   // Jump
+  const jumpForce = p.superJump > 0 ? -16 : -12.5;
   if(keys.jump && !game.jumpPressed && p.onGround) {
-    p.vy = -12.5;
-    p.onGround = false;
-    game.jumpPressed = true;
+    p.vy = jumpForce; p.onGround = false; game.jumpPressed = true;
     spawnParticles(p.x+p.w/2, p.y+p.h, '#FFD700', 5);
   }
   if(!keys.jump) game.jumpPressed = false;
 
-  // Gravity
-  p.vy += GR;
-  if(p.vy > 18) p.vy = 18;
-
-  // Move
-  p.x += p.vx;
-  p.y += p.vy;
-
-  // Clamp world
+  p.vy += GR; if(p.vy > 18) p.vy = 18;
+  p.x += p.vx; p.y += p.vy;
   p.x = Math.max(0, Math.min(p.x, lvl.width - p.w));
 
-  // Floor collision
   p.onGround = false;
-  if(p.y + p.h >= FLOOR) {
-    p.y = FLOOR - p.h;
-    p.vy = 0;
-    p.onGround = true;
-  }
+  if(p.y + p.h >= FLOOR) { p.y = FLOOR-p.h; p.vy=0; p.onGround=true; }
+  if(platformCollide(p, game.platforms)) p.onGround = true;
 
-  // Platform collision
-  const plat_on = platformCollide(p, game.platforms);
-  if(plat_on) p.onGround = true;
-
-  // Player state
-  if(!p.onGround) p.state = 'jump';
-  else if(p.crawling) p.state = 'crawl';
-  else if(Math.abs(p.vx) > 0.5) p.state = 'walk';
-  else p.state = 'idle';
+  if(!p.onGround) p.state='jump';
+  else if(p.crawling) p.state='crawl';
+  else if(Math.abs(p.vx)>0.5) p.state='walk';
+  else p.state='idle';
 
   // ─ OBSTACLES ─
   for(const o of game.obstacles) {
-    if(o.vx !== 0) {
-      o.x += o.vx;
-      if(o.x < 0 || o.x > lvl.width-o.w) o.vx *= -1;
+    if(o.type==='olla' || o.type==='almohada') {
+      // spawner / projectile
+      if(!o.active) {
+        o.timer = (o.timer||0) + 1;
+        if(o.timer >= o.spawnInterval) {
+          o.active=true; o.timer=0;
+          o.x = o.spawnX; o.y=-30; o.vy = o.vy||0; o.vy=0;
+        }
+      } else {
+        o.vy += 0.4; o.x += (o.type==='almohada'?(o.vx||0):0); o.y += o.vy;
+        if(o.y > FLOOR+40) { o.active=false; o.timer=0; }
+        if(p.hurtTimer===0 && p.diaperShield===0 && o.x>-50 && rectOverlap(p,o)) {
+          p.hp--; p.hurtTimer=80; p.vy=-8;
+          spawnParticles(p.x+p.w/2,p.y,'#FF4444',8); showMsg('¡Ay! 😢');
+          if(p.hp<=0){game.state='gameover';return;}
+        }
+      }
+      continue;
     }
-    // hurt player
-    if(p.hurtTimer===0 && p.diaperShield===0 && rectOverlap(p, o)) {
-      p.hp--;
-      p.hurtTimer = 80;
-      p.vy = -8;
-      spawnParticles(p.x+p.w/2,p.y, '#FF4444', 10);
-      showMsg('¡Ay! 😢');
-      if(p.hp <= 0) { game.state='gameover'; return; }
+    if(o.type==='charco') {
+      // slippery zone
+      if(p.onGround && p.x+p.w>o.x && p.x<o.x+o.w && p.y+p.h>=o.y) {
+        p.vx *= 1.04; // slide
+        if(Math.sin(game.frame*0.2)>0.8) showMsg('¡Resbaladizo! 💧',4);
+      }
+      continue;
+    }
+    if(o.type==='ropa') {
+      // must jump or crawl over — hurts only if standing
+      if(p.hurtTimer===0 && p.diaperShield===0 && !p.crawling && rectOverlap(p,o)) {
+        p.hp--; p.hurtTimer=80; p.vy=-7;
+        spawnParticles(p.x+p.w/2,p.y,'#FF4444',6); showMsg('¡Tropezaste con la ropa! 👕');
+        if(p.hp<=0){game.state='gameover';return;}
+      }
+      continue;
+    }
+    if(o.type==='cucaracha') {
+      o.x += o.vx;
+      if(o.x<o.patrolX1||o.x>o.patrolX2) o.vx*=-1;
+      if(p.hurtTimer===0 && p.diaperShield===0 && rectOverlap(p,o)) {
+        const stomp = p.vy>0 && p.y+p.h < o.y+o.h*0.5;
+        if(stomp) {
+          o.active=false; o.x=-999; p.vy=-8;
+          const pts = p.doublePoints>0?300:150;
+          game.score+=pts; spawnParticles(o.x+14,o.y,'#8B4513',6,'💥');
+          showMsg('¡Aplastaste la cucaracha! +'+pts);
+        } else {
+          p.hp--; p.hurtTimer=80; p.vy=-8;
+          spawnParticles(p.x+p.w/2,p.y,'#FF4444',8); showMsg('¡La cucaracha! 🪳');
+          if(p.hp<=0){game.state='gameover';return;}
+        }
+      }
+      continue;
+    }
+    if(o.type==='zapato') {
+      o.x += o.vx;
+      if(o.x<o.patrolX1||o.x>o.patrolX2) o.vx*=-1;
+    }
+    // toycar / block — original level 1 rolling obstacles
+    if(o.type==='toycar' || o.type==='block') {
+      if(o.vx) {
+        o.x += o.vx;
+        if(o.x < 0 || o.x > lvl.width - o.w) o.vx *= -1;
+      }
+    }
+    // generic hurt check
+    if(p.hurtTimer===0 && p.diaperShield===0 && rectOverlap(p,o)) {
+      p.hp--; p.hurtTimer=80; p.vy=-8;
+      spawnParticles(p.x+p.w/2,p.y,'#FF4444',8); showMsg('¡Ay! 😢');
+      if(p.hp<=0){game.state='gameover';return;}
     }
   }
 
   // ─ COLLECTIBLES ─
+  const addPts = (v) => { const pts=p.doublePoints>0?v*2:v; game.score+=pts; return pts; };
   for(const c of game.collectibles) {
     if(c.collected) continue;
-    if(rectOverlap(p, c)) {
-      c.collected = true;
-      if(c.type==='biberon') {
-        p.hp = Math.min(p.hp+1, p.maxHp);
-        game.score += 50;
-        spawnParticles(c.x+16,c.y, '#FFD700', 8, '🍼');
-        showMsg('¡Biberón! +1❤️');
+    if(rectOverlap(p,c)) {
+      c.collected=true;
+      if(c.type==='biberon'||c.type==='tetero') {
+        p.hp=Math.min(p.hp+1,p.maxHp); addPts(50);
+        spawnParticles(c.x+16,c.y,'#FFD700',8,'🍼'); showMsg('¡'+(c.type==='tetero'?'Tetero':'Biberón')+'! +❤️');
       } else if(c.type==='toy') {
-        game.score += 100;
-        spawnParticles(c.x+16,c.y, '#FF69B4', 8, '⭐');
-        showMsg('¡Juguete! +100');
-      } else if(c.type==='diaper') {
-        p.diaperShield = 300;
-        game.score += 200;
-        spawnParticles(c.x+16,c.y, '#00BFA5', 10, '👶');
-        showMsg('¡Pañal Mágico! 🛡️ Invencible!');
+        const pts=addPts(100); spawnParticles(c.x+16,c.y,'#FF69B4',8,'⭐'); showMsg('¡Juguete! +'+pts);
+      } else if(c.type==='diaper'||c.type==='peluche') {
+        p.diaperShield=300; addPts(200);
+        spawnParticles(c.x+16,c.y,'#00BFA5',10,'🧸'); showMsg('¡'+(c.type==='peluche'?'Peluche':'Pañal')+'! 🛡️ Escudo!');
       } else if(c.type==='turbo') {
-        p.turboPower = 250;
-        game.score += 150;
-        spawnParticles(c.x+16,c.y, '#2196F3', 10, '👟');
-        showMsg('¡Zapatos Turbo! ⚡ Super Rápido!');
+        p.turboPower=250; addPts(150);
+        spawnParticles(c.x+16,c.y,'#2196F3',10,'👟'); showMsg('¡Zapatos Turbo! ⚡');
+      } else if(c.type==='galleta') {
+        p.doublePoints=600; addPts(100);
+        spawnParticles(c.x+16,c.y,'#FF9800',10,'🍪'); showMsg('¡Galleta! ×2 puntos por 10s 🍪');
+      } else if(c.type==='cobija') {
+        p.superJump=400; addPts(200);
+        spawnParticles(c.x+16,c.y,'#7C4DFF',10,'🌙'); showMsg('¡Cobija Mágica! 🌙 Salto Súper!');
       }
     }
   }
 
   // ─ CAMERA ─
   const targetCam = p.x - W*0.35;
-  game.camX = Math.max(0, Math.min(targetCam, lvl.width - W));
-  game.camX = lerp(game.camX, targetCam<0?0:targetCam>lvl.width-W?lvl.width-W:targetCam, 0.12);
-  game.camX = Math.max(0, Math.min(game.camX, lvl.width - W));
+  game.camX = lerp(game.camX, Math.max(0,Math.min(targetCam,lvl.width-W)), 0.12);
+  game.camX = Math.max(0, Math.min(game.camX, lvl.width-W));
 
   // ─ BOSS TRIGGER ─
-  if(!game.boss.bossActive && p.x > 1900) {
-    game.boss.bossActive = true;
-    game.boss.alive = true;
-    game.state = 'boss';
-    showMsg('¡Es Mambo! 🐕 ¡Sáltale encima!', 160);
+  const b = game.boss;
+  if(b && !b.bossActive && p.x > b.triggerX) {
+    b.bossActive=true; b.alive=true;
+    game.state='boss';
+    showMsg('¡'+b.name+'! ¡Sáltale encima!', 160);
   }
 
   // ─ BOSS UPDATE ─
-  if(game.state==='boss' && game.boss.alive) {
-    const b = game.boss;
-    b.frame = (b.frame||0) + 1;
-    // boss movement
-    b.vy += GR;
-    b.x += b.vx;
-    b.y += b.vy;
-    if(b.y + b.h >= FLOOR) { b.y=FLOOR-b.h; b.vy=0; b.onGround=true; }
+  if(game.state==='boss' && b && b.alive) {
+    b.frame=(b.frame||0)+1;
+    b.vy+=GR; b.x+=b.vx; b.y+=b.vy;
+    if(b.y+b.h>=FLOOR){b.y=FLOOR-b.h;b.vy=0;b.onGround=true;}
     platformCollide(b, game.platforms);
-    // bounce
-    if(b.x < 1950 || b.x > 2280) {
-      b.vx *= -1;
-      b.dir = b.vx > 0 ? 1 : -1;
-      // occasional jump
-      if(b.onGround && Math.random()<0.4) { b.vy=-10; }
+    if(b.x<b.minX||b.x>b.maxX){
+      b.vx*=-1; b.dir=b.vx>0?1:-1;
+      if(b.onGround&&Math.random()<0.4) b.vy=-10;
     }
-    b.x = Math.max(1950, Math.min(b.x, 2280));
+    b.x=Math.max(b.minX,Math.min(b.x,b.maxX));
 
-    // ── player stomps boss (MUST check before boss-hurts-player) ──
-    const stompingBoss = p.vy > 0 && rectOverlap(p,b) && p.y + p.h < b.y + b.h * 0.65;
-    if(stompingBoss) {
-      b.hp--;
-      p.vy = -12;
-      p.hurtTimer = 20; // brief immunity so hurt-check below won't trigger
-      spawnParticles(b.x+b.w/2, b.y, '#FF9800', 14, '💥');
-      showMsg(b.hp>0 ? `¡Bien! ${b.hp} golpe${b.hp>1?'s':''} más 💪` : '¡Último golpe! 💥');
-      if(b.hp <= 0) {
-        b.alive = false;
-        game.state = 'win';
-        game.score += 1000;
-        spawnParticles(b.x+b.w/2, b.y-20, '#FFD700', 30, '🎉');
-        spawnParticles(p.x+p.w/2, p.y, '#FF69B4', 20, '⭐');
-        showMsg('¡GANASTE! ¡Esteban es el mejor! 🏆🍼⭐', 500);
+    // Susi dashes occasionally
+    if(b.type==='susi' && b.frame%120===0) { b.vx=b.dir*7; }
+    // Mico jumps more
+    if(b.type==='mico' && b.onGround && b.frame%80===0) { b.vy=-13; }
+
+    const stomping = p.vy>0 && rectOverlap(p,b) && p.y+p.h < b.y+b.h*0.65;
+    if(stomping) {
+      b.hp--; p.vy=-12; p.hurtTimer=20;
+      spawnParticles(b.x+b.w/2,b.y,'#FF9800',14,'💥');
+      showMsg(b.hp>0?`¡Bien! ${b.hp} golpe${b.hp>1?'s':''} más 💪`:'¡Último golpe! 💥');
+      if(b.hp<=0) {
+        b.alive=false;
+        spawnParticles(b.x+b.w/2,b.y-20,'#FFD700',30,'🎉');
+        if(game.levelNum<3) {
+          game.score+=1000; game.state='levelComplete'; game.levelCompleteTimer=200;
+          game.p.hp=game.p.maxHp; // full HP for next level
+          showMsg(`¡${b.name} derrotado! 🏆 Siguiente nivel...`,200);
+        } else {
+          game.score+=2000; game.state='win';
+          showMsg('¡GANASTE! ¡Esteban es el campeón! 🏆🍼⭐',500);
+        }
       }
     }
-
-    // ── boss hurts player (side/front collision) ──
-    if(!stompingBoss && p.hurtTimer===0 && p.diaperShield===0 && rectOverlap(p,b)) {
-      p.hp--;
-      p.hurtTimer = 100;
-      p.vy = -9; p.vx = p.x < b.x ? -5 : 5;
-      spawnParticles(p.x+p.w/2, p.y, '#FF4444', 12, '😱');
-      showMsg('¡Mambo te mordió! 🐕💥');
-      if(p.hp <= 0) { game.state='gameover'; return; }
+    if(!stomping && p.hurtTimer===0 && p.diaperShield===0 && rectOverlap(p,b)) {
+      p.hp--; p.hurtTimer=100; p.vy=-9; p.vx=p.x<b.x?-5:5;
+      spawnParticles(p.x+p.w/2,p.y,'#FF4444',12,'😱');
+      showMsg('¡'+b.name+' te golpeó! 💥');
+      if(p.hp<=0){game.state='gameover';return;}
     }
   }
 
@@ -922,6 +1352,14 @@ function drawHUD() {
   if(game.p.diaperShield>0) {
     ctx.fillStyle='#00CBA0'; ctx.font='bold 15px Arial';
     ctx.fillText('🛡️ ESCUDO: '+(game.p.diaperShield/60|0)+'s', 14, 98);
+  }
+  if(game.p.superJump>0) {
+    ctx.fillStyle='#7C4DFF'; ctx.font='bold 15px Arial';
+    ctx.fillText('🌙 SÚPER SALTO: '+(game.p.superJump/60|0)+'s', 14, 116);
+  }
+  if(game.p.doublePoints>0) {
+    ctx.fillStyle='#FF9800'; ctx.font='bold 15px Arial';
+    ctx.fillText('🍪 ×2 PUNTOS: '+(game.p.doublePoints/60|0)+'s', 14, 134);
   }
 
   // message
@@ -1064,10 +1502,25 @@ function render() {
   // obstacles
   for(const o of game.obstacles) drawObstacle(o);
 
+  // crawl zones (low ceilings)
+  for(const z of game.crawlZones) {
+    ctx.fillStyle='rgba(139,90,43,0.85)';
+    ctx.beginPath(); ctx.roundRect(z.x1, z.ceilY-18, z.x2-z.x1, 18, 4); ctx.fill();
+    ctx.fillStyle='rgba(90,50,20,0.6)';
+    ctx.fillRect(z.x1, z.ceilY, z.x2-z.x1, 2);
+    // blinking arrow hint
+    if(Math.sin(game.frame*0.12)>0) {
+      ctx.font='16px serif'; ctx.textAlign='center';
+      ctx.fillText('🐣', (z.x1+z.x2)/2, z.ceilY-22);
+    }
+  }
+
   // boss
-  if(game.boss.bossActive && game.boss.alive) {
+  if(game.boss && game.boss.bossActive && game.boss.alive) {
     const b = game.boss;
-    drawDog(b.x+b.w/2, b.y+b.h, b.dir, b.frame||0, b.hp, b.maxHp);
+    if(b.type==='mambo') drawDog(b.x+b.w/2, b.y+b.h, b.dir, b.frame||0, b.hp, b.maxHp);
+    else if(b.type==='susi') drawSusi(b.x+b.w/2, b.y+b.h, b.dir, b.frame||0, b.hp, b.maxHp);
+    else if(b.type==='mico') drawMico(b.x+b.w/2, b.y+b.h, b.dir, b.frame||0, b.hp, b.maxHp);
   }
 
   // particles (world-space)
@@ -1113,15 +1566,43 @@ function render() {
   // HUD (on top, screen space)
   drawHUD();
 
+  // level badge
+  if(game.state!=='menu') {
+    ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.beginPath(); ctx.roundRect(W-80,H-36,76,28,6); ctx.fill();
+    ctx.fillStyle='#FFD700'; ctx.font='bold 13px Arial'; ctx.textAlign='center';
+    ctx.fillText(`Nivel ${game.levelNum}/3`, W-42, H-17);
+  }
+
   // overlays
   if(game.state==='menu') drawMenu();
+  else if(game.state==='levelComplete') drawLevelComplete();
   else if(game.state==='win') drawWin();
   else if(game.state==='gameover') drawGameOver();
 }
 
+function drawLevelComplete() {
+  ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,H);
+  ctx.textAlign='center';
+  ctx.font='bold 46px Comic Sans MS'; ctx.fillStyle='#FFD700';
+  ctx.shadowColor='#FF6B00'; ctx.shadowBlur=20;
+  ctx.fillText(`🏆 ¡NIVEL ${game.levelNum} COMPLETADO! 🏆`, W/2, 130);
+  ctx.shadowBlur=0;
+  ctx.font='22px Comic Sans MS'; ctx.fillStyle='#fff';
+  ctx.fillText(`Puntaje: ${game.score} ⭐`, W/2, 185);
+  ctx.fillText(`❤️ Vida completa para el siguiente nivel`, W/2, 220);
+  // dancing Esteban
+  ctx.save(); ctx.translate(W/2, H/2+50); ctx.scale(2,2);
+  drawEstebanStand(game.frame,'walk');
+  ctx.restore();
+  const blink = Math.sin(game.frame*0.1)>0;
+  if(blink) { ctx.font='bold 18px Comic Sans MS'; ctx.fillStyle='#FFD700';
+    ctx.fillText('Preparando nivel '+(game.levelNum+1)+'...', W/2, H-30); }
+  ctx.textAlign='left';
+}
+
 // ── GAME LOOP ─────────────────────────────────────────────────────────────────
 function loop() {
-  if(game.state==='playing' || game.state==='boss') update();
+  if(game.state==='playing' || game.state==='boss' || game.state==='levelComplete') update();
   else game.frame++;
   render();
   requestAnimationFrame(loop);
@@ -1131,6 +1612,7 @@ function loop() {
 function startGame() {
   initGame();
   game.state='playing';
+  showMsg('Nivel 1: La Sala 🛋️', 150);
 }
 
 // input to start
