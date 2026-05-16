@@ -833,8 +833,7 @@ function drawObstacle(o) {
     ctx.restore(); return;
   }
   if(o.type==='almohada') {
-    // estela de movimiento
-    ctx.save();
+    // estela de movimiento (sin ctx.save extra — se usa el externo de drawObstacle)
     for(let t=1;t<=3;t++) {
       ctx.globalAlpha = 0.12 * (4-t);
       ctx.fillStyle='#CE93D8';
@@ -850,10 +849,10 @@ function drawObstacle(o) {
     ctx.strokeStyle='rgba(255,255,255,0.6)'; ctx.lineWidth=1.5; ctx.setLineDash([4,4]);
     ctx.beginPath(); ctx.moveTo(-o.w/2+6,0); ctx.lineTo(o.w/2-6,0); ctx.stroke();
     ctx.setLineDash([]);
-    // estrellas de velocidad
+    // estelas de velocidad
     ctx.fillStyle='#FFD700'; ctx.font='10px serif'; ctx.textAlign='center';
     ctx.fillText('💨', o.w/2+8, 5);
-    ctx.restore(); return;
+    ctx.restore(); return;  // restore del ctx.save() externo (línea 825)
   }
   const emojis={toycar:'🚗',block:'🧸',cucaracha:'🪳',olla:'🪣',charco:'💧',zapato:'👟'};
   ctx.font=(o.type==='cucaracha'?'22':'30')+'px serif';
@@ -1415,7 +1414,8 @@ function update() {
         o.timer++;
         if(o.timer >= o.spawnInterval) {
           o.active=true; o.timer=0;
-          o.x = game.camX + W + 70; // aparece justo fuera del borde derecho de la cámara
+          o.x = game.camX + W + 70;
+          o.y = o.baseY;
           o.phase = Math.random() * Math.PI * 2;
         }
       } else {
