@@ -68,6 +68,11 @@ const faceImg = new Image();
 faceImg.onload = () => { faceLoaded = true; };
 faceImg.src = './esteban.jpeg';
 
+let primosLoaded = false;
+const primosImg = new Image();
+primosImg.onload = () => { primosLoaded = true; };
+primosImg.src = './primos.jpg';
+
 // ── SCALE for mobile ──────────────────────────────────────────────────────────
 function scaleCanvas() {
   const vw = window.innerWidth, vh = window.innerHeight - 100;
@@ -539,90 +544,93 @@ function drawSusi(x, y, dir, frame, hp, maxHp) {
   ctx.restore();
 }
 
-// ── DRAWING: MICO THE MONKEY (Level 3 Boss) ────────────────────────────────────
-function drawMico(x, y, dir, frame, hp, maxHp) {
+// ── DRAWING: PATO ÑATO THE DUCK (Level 3 Boss) ────────────────────────────────────
+function drawPato(x, y, dir, frame, hp, maxHp) {
   ctx.save(); ctx.translate(x, y);
   if(dir<0) ctx.scale(-1,1);
   const bob = Math.sin(frame*0.18)*4;
   ctx.save(); ctx.globalAlpha=0.2; ctx.fillStyle='#000';
-  ctx.beginPath(); ctx.ellipse(0,2,28,5,0,0,Math.PI*2); ctx.fill(); ctx.restore();
+  ctx.beginPath(); ctx.ellipse(0,2,30,6,0,0,Math.PI*2); ctx.fill(); ctx.restore();
   ctx.translate(0, bob);
 
-  // curly tail
-  ctx.save(); ctx.translate(-28,-5);
-  ctx.strokeStyle='#8B4513'; ctx.lineWidth=7; ctx.lineCap='round';
-  ctx.beginPath(); ctx.moveTo(0,0); ctx.bezierCurveTo(-15,0,-20,-20,-10,-28); ctx.stroke();
-  ctx.strokeStyle='#C68030'; ctx.lineWidth=4;
-  ctx.beginPath(); ctx.moveTo(0,0); ctx.bezierCurveTo(-12,0,-16,-16,-8,-24); ctx.stroke();
+  // tail feathers
+  ctx.save(); ctx.translate(-28, -8);
+  ctx.fillStyle='#1565C0';
+  ctx.beginPath(); ctx.ellipse(0,0,14,8,Math.PI*0.2,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#0D47A1';
+  ctx.beginPath(); ctx.ellipse(-4,-3,9,5,Math.PI*0.35,0,Math.PI*2); ctx.fill();
   ctx.restore();
 
   // body
-  ctx.fillStyle='#8B4513';
-  ctx.beginPath(); ctx.ellipse(0,-5,28,20,0,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#DEB887';
-  ctx.beginPath(); ctx.ellipse(4,-4,18,14,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#FFFFFF';
+  ctx.beginPath(); ctx.ellipse(0,-8,30,22,0,0,Math.PI*2); ctx.fill();
+  // belly shading
+  ctx.fillStyle='#F5F5F5';
+  ctx.beginPath(); ctx.ellipse(6,-6,18,15,0,0,Math.PI*2); ctx.fill();
 
-  // arms
-  const as = Math.sin(frame*0.2)*20;
-  [-1,1].forEach((side,i)=>{
-    ctx.save(); ctx.translate(side*26,-18);
-    ctx.rotate(side*(as-20)*Math.PI/180);
-    ctx.fillStyle='#8B4513';
-    ctx.beginPath(); ctx.roundRect(-4,0,9,22,5); ctx.fill();
-    ctx.fillStyle='#DEB887';
-    ctx.beginPath(); ctx.arc(0,24,6,0,Math.PI*2); ctx.fill();
+  // wings
+  const ws = Math.sin(frame*0.25)*18;
+  [-1,1].forEach(side=>{
+    ctx.save(); ctx.translate(side*26,-14);
+    ctx.rotate(side*(ws-10)*Math.PI/180);
+    ctx.fillStyle=side===-1?'#E3F2FD':'#BBDEFB';
+    ctx.beginPath(); ctx.ellipse(0,8,7,18,0,0,Math.PI*2); ctx.fill();
     ctx.restore();
   });
 
   // legs
-  const ls2 = Math.sin(frame*0.22)*15;
-  [[-12,-2],[-4,-2],[4,-2],[12,-2]].forEach(([lx,ly],i)=>{
+  const ls = Math.sin(frame*0.28)*12;
+  [[-10,0],[10,0]].forEach(([lx,ly],i)=>{
     ctx.save(); ctx.translate(lx,ly);
-    ctx.rotate((i%2===0?ls2:-ls2)*Math.PI/180);
-    ctx.fillStyle='#8B4513';
-    ctx.beginPath(); ctx.roundRect(-4,0,9,17,4); ctx.fill();
-    ctx.fillStyle='#DEB887';
-    ctx.beginPath(); ctx.ellipse(0,18,5,3,0,0,Math.PI*2); ctx.fill();
+    ctx.rotate((i===0?ls:-ls)*Math.PI/180);
+    ctx.fillStyle='#FF8F00';
+    ctx.beginPath(); ctx.roundRect(-3,0,6,18,3); ctx.fill();
+    // webbed foot
+    ctx.beginPath();
+    ctx.moveTo(-3,18); ctx.lineTo(-9,26); ctx.lineTo(-1,25);
+    ctx.lineTo(0,28); ctx.lineTo(7,25); ctx.lineTo(10,28);
+    ctx.lineTo(12,22); ctx.lineTo(3,18); ctx.closePath();
+    ctx.fill();
     ctx.restore();
   });
 
   // HEAD
-  ctx.save(); ctx.translate(22,-24);
-  ctx.fillStyle='#8B4513';
-  ctx.beginPath(); ctx.ellipse(0,0,20,18,0,0,Math.PI*2); ctx.fill();
-  // round ears
-  ctx.fillStyle='#8B4513';
-  ctx.beginPath(); ctx.arc(-18,0,9,0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(18,0,9,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#DEB887';
-  ctx.beginPath(); ctx.arc(-18,0,5,0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(18,0,5,0,Math.PI*2); ctx.fill();
-  // face
-  ctx.fillStyle='#DEB887';
-  ctx.beginPath(); ctx.ellipse(0,2,14,13,0,0,Math.PI*2); ctx.fill();
-  // eyes
-  ctx.fillStyle='#1A0A00';
-  ctx.beginPath(); ctx.arc(-6,-3,5,0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(6,-3,5,0,Math.PI*2); ctx.fill();
+  ctx.save(); ctx.translate(24,-30);
+  // head
+  ctx.fillStyle='#FFFFFF';
+  ctx.beginPath(); ctx.ellipse(0,0,18,16,0,0,Math.PI*2); ctx.fill();
+  // iridescent crown patch
+  ctx.fillStyle='#1565C0';
+  ctx.beginPath(); ctx.ellipse(-2,-10,11,7,-0.2,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#283593';
+  ctx.beginPath(); ctx.ellipse(-4,-11,6,4,-0.3,0,Math.PI*2); ctx.fill();
+  // eye
+  ctx.fillStyle='#1A237E';
+  ctx.beginPath(); ctx.arc(-5,-2,5,0,Math.PI*2); ctx.fill();
   ctx.fillStyle='#fff';
-  ctx.beginPath(); ctx.arc(-4.5,-4.5,2,0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(7.5,-4.5,2,0,Math.PI*2); ctx.fill();
-  // big smile
-  ctx.strokeStyle='#8B2500'; ctx.lineWidth=2; ctx.lineCap='round';
-  ctx.beginPath(); ctx.arc(0,7,9,0.1,Math.PI-0.1); ctx.stroke();
-  // nostrils
-  ctx.fillStyle='#6B3410';
-  ctx.beginPath(); ctx.arc(-3,4,2,0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(3,4,2,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-3,-3.5,2,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#000';
+  ctx.beginPath(); ctx.arc(-3.5,-3.5,1,0,Math.PI*2); ctx.fill();
+  // flat bill (ñato = flat-nosed)
+  ctx.fillStyle='#FF8F00';
+  ctx.beginPath();
+  ctx.roundRect(8,-6,20,10,5);
+  ctx.fill();
+  ctx.strokeStyle='#E65100'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(8,-1); ctx.lineTo(27,-1); ctx.stroke();
+  // nostrils on flat bill
+  ctx.fillStyle='#E65100';
+  ctx.beginPath(); ctx.ellipse(14,-3,2,1.5,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(20,-3,2,1.5,0,0,Math.PI*2); ctx.fill();
   ctx.restore();
 
   if(hp>0) {
     ctx.fillStyle='rgba(0,0,0,0.55)';
-    ctx.beginPath(); ctx.roundRect(-34,-68,68,12,4); ctx.fill();
+    ctx.beginPath(); ctx.roundRect(-36,-78,72,12,4); ctx.fill();
     ctx.fillStyle=hp/maxHp>0.5?'#4CAF50':hp/maxHp>0.25?'#FF9800':'#F44336';
-    ctx.beginPath(); ctx.roundRect(-34,-68,68*(hp/maxHp),12,4); ctx.fill();
+    ctx.beginPath(); ctx.roundRect(-36,-78,72*(hp/maxHp),12,4); ctx.fill();
     ctx.fillStyle='#fff'; ctx.font='bold 9px Arial'; ctx.textAlign='center';
-    ctx.fillText('🐒 MICO',0,-58);
+    ctx.fillText('🦆 PATO ÑATO',0,-68);
   }
   ctx.restore();
 }
@@ -1006,7 +1014,7 @@ function buildLevel3() {
     {x1:1670, x2:2040, ceilY:FLOOR-35},
   ];
   return { platforms, obstacles, collectibles, crawlZones, width:2700, name:'La Habitación', theme:'habitacion',
-    boss:{type:'mico',x:2200,y:FLOOR-85,w:80,h:85,hp:6,maxHp:6,alive:false,bossActive:false,vx:3.5,vy:0,dir:1,onGround:false,frame:0,triggerX:2100,minX:2100,maxX:2550,name:'MICO 🐒'} };
+    boss:{type:'pato',x:2200,y:FLOOR-85,w:80,h:85,hp:6,maxHp:6,alive:false,bossActive:false,vx:3.5,vy:0,dir:1,onGround:false,frame:0,triggerX:2100,minX:2100,maxX:2550,name:'PATO ÑATO 🦆'} };
 }
 
 // ── GAME STATE ────────────────────────────────────────────────────────────────
@@ -1298,7 +1306,7 @@ function update() {
     // Susi dashes occasionally
     if(b.type==='susi' && b.frame%120===0) { b.vx=b.dir*7; }
     // Mico jumps more
-    if(b.type==='mico' && b.onGround && b.frame%80===0) { b.vy=-13; }
+    if(b.type==='pato' && b.onGround && b.frame%80===0) { b.vy=-13; }
 
     const stomping = p.vy>0 && rectOverlap(p,b) && p.y+p.h < b.y+b.h*0.65;
     if(stomping) {
@@ -1426,31 +1434,65 @@ function drawMenu() {
 }
 
 function drawWin() {
-  ctx.fillStyle='rgba(0,0,0,0.5)';
+  // dark overlay
+  ctx.fillStyle='rgba(0,0,0,0.72)';
   ctx.fillRect(0,0,W,H);
   ctx.textAlign='center';
-  ctx.font='bold 52px Comic Sans MS';
-  ctx.fillStyle='#FFD700';
-  ctx.shadowColor='#FF6B00'; ctx.shadowBlur=30;
-  ctx.fillText('🏆 ¡GANASTE! 🏆', W/2, 120);
-  ctx.shadowBlur=0;
-  ctx.font='28px Comic Sans MS';
-  ctx.fillStyle='#fff';
-  ctx.fillText('¡Esteban es el campeón! 🍼⭐🎉', W/2, 175);
-  ctx.font='32px Arial';
-  ctx.fillStyle='#FFD700';
-  ctx.fillText('Puntaje Final: '+game.score+' ⭐', W/2, 225);
 
-  // dancing Esteban
-  ctx.save(); ctx.translate(W/2, H/2+40); ctx.scale(2.2,2.2);
+  // confetti sparkle bg
+  const cf=['#FFD700','#FF6B00','#00E5FF','#FF4081','#69F0AE'];
+  for(let i=0;i<40;i++){
+    const fx=(Math.sin(i*137.5+game.frame*0.04)*0.5+0.5)*W;
+    const fy=(Math.cos(i*97.3+game.frame*0.03)*0.5+0.5)*H;
+    ctx.fillStyle=cf[i%cf.length];
+    ctx.globalAlpha=0.55+Math.sin(game.frame*0.12+i)*0.45;
+    ctx.beginPath(); ctx.arc(fx,fy,3+Math.sin(i+game.frame*0.07)*2,0,Math.PI*2); ctx.fill();
+  }
+  ctx.globalAlpha=1;
+
+  // title
+  ctx.font='bold 48px Comic Sans MS';
+  ctx.fillStyle='#FFD700';
+  ctx.shadowColor='#FF6B00'; ctx.shadowBlur=28;
+  ctx.fillText('🏆 ¡FELICIDADES! 🏆', W/2, 58);
+  ctx.shadowBlur=0;
+
+  // subtitle
+  ctx.font='bold 22px Comic Sans MS';
+  ctx.fillStyle='#FFFFFF';
+  ctx.fillText('¡Has rescatado a tus primos! 🦆🍼🎉', W/2, 90);
+
+  // photo of the primos — centred, rounded frame
+  const ph = 200, pw = ph*(4/3);
+  const px = W/2 - pw/2, py = 100;
+  ctx.save();
+  ctx.shadowColor='#FFD700'; ctx.shadowBlur=22;
+  ctx.fillStyle='#FFD700';
+  ctx.beginPath(); ctx.roundRect(px-6, py-6, pw+12, ph+12, 16); ctx.fill();
+  ctx.shadowBlur=0;
+  ctx.beginPath(); ctx.roundRect(px, py, pw, ph, 12); ctx.clip();
+  if(primosLoaded) {
+    ctx.drawImage(primosImg, px, py, pw, ph);
+  } else {
+    ctx.fillStyle='#333'; ctx.fillRect(px,py,pw,ph);
+  }
+  ctx.restore();
+
+  // score
+  ctx.font='bold 26px Comic Sans MS';
+  ctx.fillStyle='#FFD700';
+  ctx.fillText('Puntaje Final: '+game.score+' ⭐', W/2, py+ph+42);
+
+  // dancing Esteban small at bottom
+  ctx.save(); ctx.translate(W/2, py+ph+110); ctx.scale(1.6,1.6);
   drawEstebanStand(game.frame,'walk');
   ctx.restore();
 
   const blink = Math.sin(game.frame*0.08)>0;
   if(blink) {
-    ctx.font='bold 22px Comic Sans MS';
+    ctx.font='bold 19px Comic Sans MS';
     ctx.fillStyle='#FFD700';
-    ctx.fillText('▶  Toca o presiona ESPACIO para jugar de nuevo  ◀', W/2, H-30);
+    ctx.fillText('▶  Toca o presiona ESPACIO para jugar de nuevo  ◀', W/2, H-18);
   }
   ctx.textAlign='left';
 }
@@ -1520,7 +1562,7 @@ function render() {
     const b = game.boss;
     if(b.type==='mambo') drawDog(b.x+b.w/2, b.y+b.h, b.dir, b.frame||0, b.hp, b.maxHp);
     else if(b.type==='susi') drawSusi(b.x+b.w/2, b.y+b.h, b.dir, b.frame||0, b.hp, b.maxHp);
-    else if(b.type==='mico') drawMico(b.x+b.w/2, b.y+b.h, b.dir, b.frame||0, b.hp, b.maxHp);
+    else if(b.type==='pato') drawPato(b.x+b.w/2, b.y+b.h, b.dir, b.frame||0, b.hp, b.maxHp);
   }
 
   // particles (world-space)
