@@ -135,13 +135,26 @@ const SFX = {
   collect:    () => { beep(880,0.06,0.22); beep(1108,0.06,0.22,'square',0.07); beep(1320,0.12,0.22,'square',0.13); },
   bossHit:    () => { beep(330,0.05,0.3,'sawtooth'); beep(220,0.12,0.28,'sawtooth',0.06); },
   bossAppear: () => {
-    // "DUN DUN DUN DUUUN" — patron clasico de jefe, imposible no escucharlo
     stopMusic();
-    beep(220, 0.16, 0.7, 'square',   0.02);
-    beep(220, 0.16, 0.7, 'square',   0.24);
-    beep(220, 0.16, 0.7, 'square',   0.46);
-    beep(147, 0.9,  0.85,'sawtooth', 0.70);
-    beep(196, 0.7,  0.75,'square',   0.72);
+    // Bypass beep() helper — Web Audio API directo para garantizar que suene
+    const ac = actx();
+    ac.resume().then(() => {
+      const now = ac.currentTime + 0.08;
+      function hit(t, freq, dur, vol) {
+        const o = ac.createOscillator(), g = ac.createGain();
+        o.type = 'square';
+        o.frequency.value = freq;
+        g.gain.setValueAtTime(vol, t);
+        g.gain.linearRampToValueAtTime(0.001, t + dur);
+        o.connect(g); g.connect(ac.destination);
+        o.start(t); o.stop(t + dur + 0.01);
+      }
+      hit(now,        220, 0.14, 0.9);   // DUN
+      hit(now + 0.22, 220, 0.14, 0.9);   // DUN
+      hit(now + 0.44, 220, 0.14, 0.9);   // DUN
+      hit(now + 0.70, 147, 0.80, 1.0);   // DUUUUN (bajo)
+      hit(now + 0.72, 220, 0.80, 0.85);  // DUUUUN (armonico)
+    }).catch(()=>{});
   },
   levelup:    () => { [523,659,784,1047].forEach((f,i)=>beep(f,0.15,0.28,'square',i*0.13)); },
   win:        () => { [523,659,784,1047,784,1047,1319].forEach((f,i)=>beep(f,0.18,0.28,'square',i*0.15)); },
