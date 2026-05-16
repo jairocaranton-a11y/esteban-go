@@ -710,43 +710,98 @@ function drawObstacle(o) {
   ctx.restore();
 }
 
+// ── 2.5D: drop shadow helper ──────────────────────────────────────────────────
+function drawDropShadow(x, y, rx, ry, alpha=0.28) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  const sg = ctx.createRadialGradient(x, y, 0, x, y, rx);
+  sg.addColorStop(0, 'rgba(0,0,0,0.9)');
+  sg.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = sg;
+  ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
 // ── BACKGROUND: LA SALA ───────────────────────────────────────────────────────
 function drawBackground(camX) {
   const theme = game.level?.theme || 'sala';
   if(theme==='cocina') {
-    // Kitchen: cream walls with tile lines
     ctx.fillStyle='#FFFDE7'; ctx.fillRect(0,0,W,H);
+    // FAR layer (0.02): ventanas con cortinas al fondo
+    ctx.save(); ctx.globalAlpha=0.13;
+    for(let wx=(-camX*0.02)%300-300; wx<W+300; wx+=300) {
+      ctx.fillStyle='#B2EBF2';
+      ctx.beginPath(); ctx.roundRect(wx+60,18,110,105,4); ctx.fill();
+      ctx.strokeStyle='#90A4AE'; ctx.lineWidth=3;
+      ctx.strokeRect(wx+60,18,110,105);
+      ctx.strokeStyle='#B0BEC5'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(wx+115,18); ctx.lineTo(wx+115,123); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(wx+60,70); ctx.lineTo(wx+170,70); ctx.stroke();
+      ctx.fillStyle='#FFF176';
+      ctx.beginPath(); ctx.moveTo(wx+50,12); ctx.quadraticCurveTo(wx+64,70,wx+62,130); ctx.lineTo(wx+56,130); ctx.quadraticCurveTo(wx+52,70,wx+38,12); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(wx+182,12); ctx.quadraticCurveTo(wx+168,70,wx+170,130); ctx.lineTo(wx+176,130); ctx.quadraticCurveTo(wx+178,70,wx+194,12); ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+    // MID layer (0.05): grilla de azulejos
     ctx.strokeStyle='#E0E0E0'; ctx.lineWidth=1;
     for(let ty=0; ty<FLOOR; ty+=40) { ctx.beginPath(); ctx.moveTo(0,ty); ctx.lineTo(W,ty); ctx.stroke(); }
     for(let tx=(-camX*0.05)%60-60; tx<W+60; tx+=60) { ctx.beginPath(); ctx.moveTo(tx,0); ctx.lineTo(tx,FLOOR); ctx.stroke(); }
-    // yellow accent top
+    // NEAR layer: acento amarillo y rodapié
     ctx.fillStyle='#FFF9C4'; ctx.fillRect(0,0,W,60);
     ctx.fillStyle='#F9A825'; ctx.fillRect(0,58,W,4);
-    // baseboard
     ctx.fillStyle='#A07820'; ctx.fillRect(0,FLOOR+58,W,10);
     return;
   }
   if(theme==='habitacion') {
-    // Bedroom: lavender walls
     const wg = ctx.createLinearGradient(0,0,0,H);
     wg.addColorStop(0,'#EDE7F6'); wg.addColorStop(0.7,'#D1C4E9'); wg.addColorStop(1,'#B39DDB');
     ctx.fillStyle=wg; ctx.fillRect(0,0,W,H);
-    // subtle pattern
-    ctx.globalAlpha=0.05; ctx.fillStyle='#7E57C2';
-    for(let bx=(-camX*0.1)%80-80; bx<W+80; bx+=80)
-      for(let by=0; by<H*0.7; by+=80) { ctx.font='30px serif'; ctx.fillText('⭐',bx,by); }
-    ctx.globalAlpha=1;
+    // FAR layer (0.02): nubes de galaxia difusas
+    ctx.save(); ctx.globalAlpha=0.07;
+    for(let cx=(-camX*0.02)%250-250; cx<W+250; cx+=250) {
+      ctx.fillStyle='#9575CD';
+      ctx.beginPath(); ctx.ellipse(cx+70,55,75,32,0,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(cx+180,95,50,22,0.3,0,Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+    // MID layer (0.06): estrellas medianas
+    ctx.save(); ctx.globalAlpha=0.07; ctx.fillStyle='#7E57C2';
+    for(let bx=(-camX*0.06)%80-80; bx<W+80; bx+=80)
+      for(let by=0; by<H*0.7; by+=80) { ctx.font='28px serif'; ctx.fillText('⭐',bx,by); }
+    ctx.restore();
+    // NEAR layer (0.13): destellos cercanos en la pared
+    ctx.save(); ctx.globalAlpha=0.12;
+    for(let bx=(-camX*0.13)%110-110; bx<W+110; bx+=110)
+      { ctx.font='16px serif'; ctx.fillText('✨',bx,FLOOR-28); }
+    ctx.restore();
     ctx.fillStyle='#7E57C2'; ctx.fillRect(0,FLOOR+58,W,10);
     return;
   }
-  // Default: La Sala
+  // La Sala
   const wallGrad = ctx.createLinearGradient(0,0,0,H);
   wallGrad.addColorStop(0,'#FFF8E7'); wallGrad.addColorStop(0.7,'#FFE4B5'); wallGrad.addColorStop(1,'#DEB887');
   ctx.fillStyle=wallGrad; ctx.fillRect(0,0,W,H);
-  ctx.globalAlpha=0.07; ctx.fillStyle='#8B4513';
-  for(let bx=(-camX*0.1)%60-60; bx<W+60; bx+=60)
+  // FAR layer (0.02): cuadros colgados en la pared
+  ctx.save(); ctx.globalAlpha=0.11;
+  for(let fx=(-camX*0.02)%320-320; fx<W+320; fx+=320) {
+    ctx.fillStyle='#D4A853';
+    ctx.beginPath(); ctx.roundRect(fx+80,28,88,66,3); ctx.fill();
+    ctx.fillStyle='#87CEEB';
+    ctx.beginPath(); ctx.roundRect(fx+88,36,72,52,2); ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.4)';
+    ctx.beginPath(); ctx.roundRect(fx+88,36,30,52,2); ctx.fill();
+  }
+  ctx.restore();
+  // MID layer (0.07): flores en el papel tapiz
+  ctx.save(); ctx.globalAlpha=0.08;
+  for(let bx=(-camX*0.07)%60-60; bx<W+60; bx+=60)
     for(let by=0; by<H*0.7; by+=40) { ctx.font='20px serif'; ctx.fillText('🌸',bx,by); }
-  ctx.globalAlpha=1;
+  ctx.restore();
+  // NEAR layer (0.14): flores más grandes y cercanas
+  ctx.save(); ctx.globalAlpha=0.05;
+  for(let bx=(-camX*0.14)%90-90; bx<W+90; bx+=90)
+    for(let by=H*0.25; by<H*0.65; by+=65) { ctx.font='28px serif'; ctx.fillText('🌺',bx,by); }
+  ctx.restore();
   ctx.fillStyle='#8B6914'; ctx.fillRect(0,FLOOR+60,W,10);
   ctx.fillStyle='#A07820'; ctx.fillRect(0,FLOOR+58,W,4);
 }
@@ -804,65 +859,77 @@ function drawFloor(camX) {
   }
 }
 
+function platFace(x, y, w, h, color, radius=3) {
+  ctx.fillStyle = color;
+  ctx.beginPath(); ctx.roundRect(x, y+h-2, w, 11, [0,0,radius,radius]); ctx.fill();
+}
 function drawPlatform(p) {
   if(p.type==='sofa') {
-    // sofa platform
+    // 3D face
+    platFace(p.x-p.w*0.02, p.y, p.w*1.04, p.h+10, '#546E7A', 6);
     ctx.fillStyle='#B0BEC5';
     ctx.beginPath(); ctx.roundRect(p.x-p.w*0.02, p.y, p.w*1.04, p.h, 8); ctx.fill();
-    // seat cushion
     ctx.fillStyle='#90A4AE';
     ctx.beginPath(); ctx.roundRect(p.x+4, p.y+4, p.w-8, p.h-4, 6); ctx.fill();
-    // seam lines
     ctx.strokeStyle='#78909C'; ctx.lineWidth=2;
     ctx.beginPath(); ctx.moveTo(p.x+p.w/2,p.y+6); ctx.lineTo(p.x+p.w/2,p.y+p.h); ctx.stroke();
-    // armrests
     ctx.fillStyle='#78909C';
     ctx.beginPath(); ctx.roundRect(p.x-8,p.y-10,14,p.h+10,5); ctx.fill();
     ctx.beginPath(); ctx.roundRect(p.x+p.w-6,p.y-10,14,p.h+10,5); ctx.fill();
-    // cushions
     const cuCnt = Math.floor(p.w/40);
     for(let ci=0;ci<cuCnt;ci++) {
       ctx.fillStyle='#A1887F';
       const cx = p.x+8 + ci*(p.w-16)/cuCnt;
       ctx.beginPath(); ctx.roundRect(cx+2,p.y-22,((p.w-16)/cuCnt)-4,26,8); ctx.fill();
     }
+    // light gloss
+    ctx.save(); ctx.globalAlpha=0.12; ctx.fillStyle='#fff';
+    ctx.beginPath(); ctx.roundRect(p.x+4,p.y+2,p.w-8,6,3); ctx.fill(); ctx.restore();
   } else if(p.type==='table') {
+    platFace(p.x, p.y, p.w, 8+10, '#4E342E', 2);
     ctx.fillStyle='#8D6E63';
     ctx.beginPath(); ctx.roundRect(p.x,p.y,p.w,8,3); ctx.fill();
+    ctx.save(); ctx.globalAlpha=0.2; ctx.fillStyle='#fff';
+    ctx.beginPath(); ctx.roundRect(p.x+2,p.y+1,p.w-4,3,2); ctx.fill(); ctx.restore();
     ctx.fillStyle='#6D4C41';
     ctx.fillRect(p.x+8,p.y+8,8,p.h-8);
     ctx.fillRect(p.x+p.w-16,p.y+8,8,p.h-8);
   } else if(p.type==='counter') {
-    // Kitchen counter
+    platFace(p.x, p.y, p.w, p.h+10, '#5D4037', 4);
     ctx.fillStyle='#8D6E63'; ctx.beginPath(); ctx.roundRect(p.x,p.y,p.w,p.h,4); ctx.fill();
     ctx.fillStyle='#BDBDBD'; ctx.beginPath(); ctx.roundRect(p.x-4,p.y,p.w+8,10,3); ctx.fill();
     ctx.fillStyle='#E0E0E0'; ctx.beginPath(); ctx.roundRect(p.x-2,p.y+1,p.w+4,6,2); ctx.fill();
-    // cabinet doors
     const dw=60;
     for(let dx=p.x+4; dx<p.x+p.w-8; dx+=dw+4) {
       ctx.fillStyle='#A1887F'; ctx.beginPath(); ctx.roundRect(dx,p.y+14,Math.min(dw,p.x+p.w-8-dx),p.h-18,3); ctx.fill();
       ctx.fillStyle='#795548'; ctx.beginPath(); ctx.arc(dx+Math.min(dw,p.x+p.w-8-dx)/2, p.y+p.h/2+4, 3,0,Math.PI*2); ctx.fill();
     }
+    // gloss
+    ctx.save(); ctx.globalAlpha=0.18; ctx.fillStyle='#fff';
+    ctx.beginPath(); ctx.roundRect(p.x-2,p.y+1,p.w+4,4,2); ctx.fill(); ctx.restore();
   } else if(p.type==='stool') {
+    platFace(p.x, p.y, p.w, 10+9, '#757575', 3);
     ctx.fillStyle='#BDBDBD'; ctx.beginPath(); ctx.roundRect(p.x,p.y,p.w,10,4); ctx.fill();
+    ctx.save(); ctx.globalAlpha=0.2; ctx.fillStyle='#fff';
+    ctx.beginPath(); ctx.roundRect(p.x+2,p.y+1,p.w-4,3,2); ctx.fill(); ctx.restore();
     ctx.fillStyle='#9E9E9E'; ctx.fillRect(p.x+10,p.y+10,8,p.h-10); ctx.fillRect(p.x+p.w-18,p.y+10,8,p.h-10);
   } else if(p.type==='bed') {
-    // Bed with mattress, pillow, and bedframe
+    platFace(p.x, p.y, p.w, p.h+10, '#4E342E', 5);
     ctx.fillStyle='#6D4C41'; ctx.beginPath(); ctx.roundRect(p.x,p.y,p.w,p.h,6); ctx.fill();
     ctx.fillStyle='#F8BBD0'; ctx.beginPath(); ctx.roundRect(p.x+4,p.y+4,p.w-8,p.h-10,5); ctx.fill();
-    // pillow
     ctx.fillStyle='#fff'; ctx.beginPath(); ctx.roundRect(p.x+p.w-60,p.y+6,50,24,8); ctx.fill();
     ctx.strokeStyle='#F0F0F0'; ctx.lineWidth=1;
     ctx.beginPath(); ctx.roundRect(p.x+p.w-58,p.y+8,46,20,6); ctx.stroke();
-    // blanket fold
     ctx.fillStyle='#CE93D8'; ctx.beginPath(); ctx.roundRect(p.x+4,p.y+16,p.w*0.6,12,4); ctx.fill();
-    // headboard
     ctx.fillStyle='#5D4037'; ctx.beginPath(); ctx.roundRect(p.x+p.w-8,p.y-25,16,p.h+25,4); ctx.fill();
+    // gloss on mattress
+    ctx.save(); ctx.globalAlpha=0.1; ctx.fillStyle='#fff';
+    ctx.beginPath(); ctx.roundRect(p.x+4,p.y+4,p.w-8,5,3); ctx.fill(); ctx.restore();
   } else if(p.type==='nightstand') {
+    platFace(p.x, p.y, p.w, p.h+10, '#4E342E', 4);
     ctx.fillStyle='#8D6E63'; ctx.beginPath(); ctx.roundRect(p.x,p.y,p.w,p.h,4); ctx.fill();
     ctx.fillStyle='#795548'; ctx.beginPath(); ctx.roundRect(p.x+4,p.y+8,p.w-8,p.h-14,3); ctx.fill();
     ctx.fillStyle='#6D4C41'; ctx.beginPath(); ctx.arc(p.x+p.w/2,p.y+p.h/2+4,4,0,Math.PI*2); ctx.fill();
-    // lamp
     ctx.fillStyle='#FFF9C4';
     ctx.beginPath(); ctx.moveTo(p.x+p.w/2-12,p.y-2); ctx.lineTo(p.x+p.w/2+12,p.y-2); ctx.lineTo(p.x+p.w/2+6,p.y-22); ctx.lineTo(p.x+p.w/2-6,p.y-22); ctx.closePath(); ctx.fill();
     ctx.fillStyle='#F9A825'; ctx.fillRect(p.x+p.w/2-1,p.y-30,3,10);
@@ -1560,6 +1627,7 @@ function render() {
   // boss
   if(game.boss && game.boss.bossActive && game.boss.alive) {
     const b = game.boss;
+    drawDropShadow(b.x+b.w/2, b.y+b.h, b.w*0.7, 10, 0.3);
     if(b.type==='mambo') drawDog(b.x+b.w/2, b.y+b.h, b.dir, b.frame||0, b.hp, b.maxHp);
     else if(b.type==='susi') drawSusi(b.x+b.w/2, b.y+b.h, b.dir, b.frame||0, b.hp, b.maxHp);
     else if(b.type==='pato') drawPato(b.x+b.w/2, b.y+b.h, b.dir, b.frame||0, b.hp, b.maxHp);
@@ -1572,6 +1640,9 @@ function render() {
   const p = game.p;
   const hurtBlink = p.hurtTimer>0 && Math.sin(game.frame*0.5)>0;
   const shieldAlpha = p.diaperShield>0 ? 0.5+Math.sin(game.frame*0.2)*0.3 : 1;
+  // player drop shadow (shrinks when airborne)
+  const shadowScale = p.onGround ? 1 : Math.max(0.3, 1 - (FLOOR - p.y - p.h) / 180);
+  drawDropShadow(p.x+p.w/2, FLOOR, 22*shadowScale, 7*shadowScale, 0.25);
   if(!hurtBlink) {
     drawEsteban(
       p.x + p.w/2,
@@ -1604,6 +1675,12 @@ function render() {
     ctx.fillText('🏁',fx,H/2);
     ctx.restore();
   }
+
+  // depth vignette (2.5D depth effect)
+  const vig = ctx.createRadialGradient(W/2, H*0.5, H*0.25, W/2, H*0.5, H*0.85);
+  vig.addColorStop(0, 'rgba(0,0,0,0)');
+  vig.addColorStop(1, 'rgba(0,0,0,0.32)');
+  ctx.fillStyle = vig; ctx.fillRect(0,0,W,H);
 
   // HUD (on top, screen space)
   drawHUD();
