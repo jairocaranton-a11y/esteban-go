@@ -135,8 +135,13 @@ const SFX = {
   collect:    () => { beep(880,0.06,0.22); beep(1108,0.06,0.22,'square',0.07); beep(1320,0.12,0.22,'square',0.13); },
   bossHit:    () => { beep(330,0.05,0.3,'sawtooth'); beep(220,0.12,0.28,'sawtooth',0.06); },
   bossAppear: () => {
-    // Arpeggio ascendente en Do mayor, frecuencias audibles
-    [262,330,392,523,659].forEach((f,i)=>beep(f,0.18,0.35,'square',i*0.13));
+    // "DUN DUN DUN DUUUN" — patron clasico de jefe, imposible no escucharlo
+    stopMusic();
+    beep(220, 0.16, 0.7, 'square',   0.02);
+    beep(220, 0.16, 0.7, 'square',   0.24);
+    beep(220, 0.16, 0.7, 'square',   0.46);
+    beep(147, 0.9,  0.85,'sawtooth', 0.70);
+    beep(196, 0.7,  0.75,'square',   0.72);
   },
   levelup:    () => { [523,659,784,1047].forEach((f,i)=>beep(f,0.15,0.28,'square',i*0.13)); },
   win:        () => { [523,659,784,1047,784,1047,1319].forEach((f,i)=>beep(f,0.18,0.28,'square',i*0.15)); },
@@ -1629,7 +1634,7 @@ function update() {
   if(b && !b.bossActive && p.x > b.triggerX) {
     b.bossActive=true; b.alive=true;
     game.state='boss';
-    SFX.bossAppear(); stopMusic();
+    SFX.bossAppear(); // stopMusic() is called inside bossAppear
     showMsg('¡'+b.name+'! ¡Sáltale encima!', 160);
   }
 
