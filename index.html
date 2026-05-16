@@ -1147,7 +1147,7 @@ function buildLevel1() {
   ];
 
   return { platforms, obstacles, collectibles, width:2400, name:'La Sala', theme:'sala',
-    crawlZones:[], boss:{type:'mambo',x:2050,y:FLOOR-80,w:80,h:80,hp:4,maxHp:4,alive:false,bossActive:false,vx:3,vy:0,dir:1,onGround:false,frame:0,triggerX:1900,minX:1950,maxX:2280,name:'MAMBO 🐕'} };
+    crawlZones:[], boss:{type:'mambo',x:2050,y:FLOOR-80,w:80,h:80,hp:4,maxHp:4,alive:false,bossActive:false,vx:3,vy:0,dir:1,onGround:false,frame:0,hurtTimer:0,triggerX:1900,minX:1950,maxX:2280,name:'MAMBO 🐕'} };
 }
 
 function buildLevel2() {
@@ -1194,7 +1194,7 @@ function buildLevel2() {
     {x1:1745, x2:1840, ceilY:FLOOR-34},
   ];
   return { platforms, obstacles, collectibles, crawlZones, width:2500, name:'La Cocina', theme:'cocina',
-    boss:{type:'susi',x:2100,y:FLOOR-70,w:70,h:70,hp:5,maxHp:5,alive:false,bossActive:false,vx:4,vy:0,dir:1,onGround:false,frame:0,triggerX:2000,minX:2000,maxX:2380,name:'SUSI 🐱'} };
+    boss:{type:'susi',x:2100,y:FLOOR-70,w:70,h:70,hp:5,maxHp:5,alive:false,bossActive:false,vx:4,vy:0,dir:1,onGround:false,frame:0,hurtTimer:0,triggerX:2000,minX:2000,maxX:2380,name:'SUSI 🐱'} };
 }
 
 function buildLevel3() {
@@ -1221,11 +1221,6 @@ function buildLevel3() {
     {x:-99, y:100, w:64, h:50, type:'gavilan', active:false, baseY:FLOOR-190, timer:0,   spawnInterval:230, vx:-6.5, phase:0},
     {x:-99, y:100, w:64, h:50, type:'gavilan', active:false, baseY:FLOOR-260, timer:80,  spawnInterval:230, vx:-7.2, phase:2.1},
     {x:-99, y:100, w:64, h:50, type:'gavilan', active:false, baseY:FLOOR-140, timer:160, spawnInterval:230, vx:-6,   phase:4.2},
-    // almohadas horizontales a distintas alturas
-    {x:-99, y:FLOOR-85,  w:46, h:26, type:'almohada', active:false, spawnX:2720, baseY:FLOOR-85,  timer:0,   spawnInterval:140, vx:-5.5},
-    {x:-99, y:FLOOR-160, w:46, h:26, type:'almohada', active:false, spawnX:2720, baseY:FLOOR-160, timer:50,  spawnInterval:140, vx:-6.5},
-    {x:-99, y:FLOOR-85,  w:46, h:26, type:'almohada', active:false, spawnX:2720, baseY:FLOOR-85,  timer:100, spawnInterval:140, vx:-5},
-    {x:-99, y:FLOOR-230, w:46, h:26, type:'almohada', active:false, spawnX:2720, baseY:FLOOR-230, timer:30,  spawnInterval:170, vx:-7},
   ];
   const collectibles = [
     {x:140,  y:BY-40,    w:32, h:32, type:'tetero'},
@@ -1245,7 +1240,7 @@ function buildLevel3() {
     {x1:1670, x2:2040, ceilY:FLOOR-35},
   ];
   return { platforms, obstacles, collectibles, crawlZones, width:2700, name:'La Habitación', theme:'habitacion',
-    boss:{type:'pato',x:2200,y:FLOOR-85,w:80,h:85,hp:6,maxHp:6,alive:false,bossActive:false,vx:3.5,vy:0,dir:1,onGround:false,frame:0,triggerX:2100,minX:2100,maxX:2550,name:'PATO ÑATO 🦆'} };
+    boss:{type:'pato',x:2200,y:FLOOR-85,w:80,h:85,hp:6,maxHp:6,alive:false,bossActive:false,vx:3.5,vy:0,dir:1,onGround:false,frame:0,hurtTimer:0,triggerX:2100,minX:2100,maxX:2550,name:'PATO ÑATO 🦆'} };
 }
 
 // ── GAME STATE ────────────────────────────────────────────────────────────────
@@ -1564,6 +1559,7 @@ function update() {
   // ─ BOSS UPDATE ─
   if(game.state==='boss' && b && b.alive) {
     b.frame=(b.frame||0)+1;
+    if(b.hurtTimer>0) b.hurtTimer--;
     b.vy+=GR; b.x+=b.vx; b.y+=b.vy;
     if(b.y+b.h>=FLOOR){b.y=FLOOR-b.h;b.vy=0;b.onGround=true;}
     platformCollide(b, game.platforms);
@@ -1580,7 +1576,7 @@ function update() {
 
     const stomping = p.vy>0 && rectOverlap(p,b) && p.y+p.h < b.y+b.h*0.65;
     if(stomping) {
-      b.hp--; p.vy=-12; p.hurtTimer=20;
+      b.hp--; p.vy=-12; b.hurtTimer=40;
       spawnParticles(b.x+b.w/2,b.y,'#FF9800',14,'💥');
       showMsg(b.hp>0?`¡Bien! ${b.hp} golpe${b.hp>1?'s':''} más 💪`:'¡Último golpe! 💥');
       if(b.hp<=0) {
@@ -1830,10 +1826,13 @@ function render() {
   // boss
   if(game.boss && game.boss.bossActive && game.boss.alive) {
     const b = game.boss;
-    drawDropShadow(b.x+b.w/2, b.y+b.h, b.w*0.7, 10, 0.3);
-    if(b.type==='mambo') drawDog(b.x+b.w/2, b.y+b.h, b.dir, b.frame||0, b.hp, b.maxHp);
-    else if(b.type==='susi') drawSusi(b.x+b.w/2, b.y+b.h, b.dir, b.frame||0, b.hp, b.maxHp);
-    else if(b.type==='pato') drawPato(b.x+b.w/2, b.y+b.h, b.dir, b.frame||0, b.hp, b.maxHp);
+    const bossHurtBlink = b.hurtTimer>0 && Math.sin(game.frame*0.6)>0;
+    if(!bossHurtBlink) {
+      drawDropShadow(b.x+b.w/2, b.y+b.h, b.w*0.7, 10, 0.3);
+      if(b.type==='mambo') drawDog(b.x+b.w/2, b.y+b.h, b.dir, b.frame||0, b.hp, b.maxHp);
+      else if(b.type==='susi') drawSusi(b.x+b.w/2, b.y+b.h, b.dir, b.frame||0, b.hp, b.maxHp);
+      else if(b.type==='pato') drawPato(b.x+b.w/2, b.y+b.h, b.dir, b.frame||0, b.hp, b.maxHp);
+    }
   }
 
   // particles (world-space)
