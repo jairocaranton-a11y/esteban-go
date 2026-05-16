@@ -691,12 +691,73 @@ function drawCollectible(c, frame) {
   ctx.restore();
 }
 
+function drawTijeras(frame) {
+  const angle = 0.3 + Math.sin(frame * 0.1) * 0.18;
+  // pulsing red danger glow
+  const pulse = 0.5 + 0.5 * Math.sin(frame * 0.16);
+  ctx.save();
+  ctx.globalAlpha = 0.3 * pulse;
+  const glow = ctx.createRadialGradient(0, -4, 2, 0, -4, 30);
+  glow.addColorStop(0, '#FF1744'); glow.addColorStop(1, 'rgba(255,0,0,0)');
+  ctx.fillStyle = glow;
+  ctx.beginPath(); ctx.arc(0, -4, 30, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+
+  // blades
+  [1,-1].forEach(dir => {
+    ctx.save(); ctx.rotate(dir * angle);
+    const g = ctx.createLinearGradient(-4, 6, 1, -24);
+    g.addColorStop(0, '#90A4AE'); g.addColorStop(0.45, '#ECEFF1'); g.addColorStop(1, '#F5F5F5');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(-4, 6); ctx.lineTo(4, 6);
+    ctx.lineTo(1, -24); ctx.lineTo(-1, -24);
+    ctx.closePath(); ctx.fill();
+    // sharp edge gleam
+    ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 0.7;
+    ctx.beginPath(); ctx.moveTo(dir*4, 6); ctx.lineTo(dir*1, -24); ctx.stroke();
+    // inner shadow on blade
+    ctx.strokeStyle = 'rgba(0,0,0,0.18)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(-dir*2, 5); ctx.lineTo(-dir*0.5, -22); ctx.stroke();
+    // handle ring
+    ctx.translate(0, 20);
+    ctx.fillStyle = '#455A64';
+    ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#78909C';
+    ctx.beginPath(); ctx.arc(0, 0, 7, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.22)';
+    ctx.beginPath(); ctx.arc(-2.5, -2.5, 3.5, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  });
+
+  // center pivot screw
+  ctx.fillStyle = '#263238';
+  ctx.beginPath(); ctx.arc(0, 4, 4.5, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#546E7A';
+  ctx.beginPath(); ctx.arc(0, 4, 2.5, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = '#B0BEC5'; ctx.lineWidth = 0.8;
+  ctx.beginPath(); ctx.moveTo(-1.5,4); ctx.lineTo(1.5,4); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0,2.5); ctx.lineTo(0,5.5); ctx.stroke();
+
+  // danger spark at tips
+  if(Math.sin(frame*0.3+1)>0.75) {
+    ctx.save(); ctx.globalAlpha=0.9;
+    ctx.fillStyle='#FF1744'; ctx.font='bold 11px Arial'; ctx.textAlign='center';
+    ctx.fillText('✦', -16, -28); ctx.fillText('✦', 16, -28);
+    ctx.restore();
+  }
+}
+
 function drawObstacle(o) {
   if(!o.active && (o.type==='olla'||o.type==='almohada')) return;
   if(o.x<-50) return;
   ctx.save();
   ctx.translate(o.x + o.w/2, o.y + o.h/2);
-  const emojis={toycar:'🚗',block:'🧸',cucaracha:'🪳',olla:'🪣',charco:'💧',almohada:'🛏️',ropa:'👕',zapato:'👟'};
+  if(o.type==='tijeras') {
+    drawTijeras(game.frame);
+    ctx.restore(); return;
+  }
+  const emojis={toycar:'🚗',block:'🧸',cucaracha:'🪳',olla:'🪣',charco:'💧',almohada:'🛏️',zapato:'👟'};
   ctx.font=(o.type==='cucaracha'?'22':'30')+'px serif';
   ctx.textAlign='center'; ctx.textBaseline='middle';
   if(o.type==='charco') {
@@ -1052,13 +1113,13 @@ function buildLevel3() {
     {x:2040, y:BY,      w:320, h:100, type:'bed'},
   ];
   const obstacles = [
-    {x:380,  y:FLOOR-22, w:50, h:22, type:'ropa',   vx:0},
-    {x:580,  y:FLOOR-26, w:26, h:26, type:'zapato',  vx:1.5, patrolX1:540, patrolX2:650},
-    {x:980,  y:FLOOR-22, w:50, h:22, type:'ropa',   vx:0},
-    {x:1150, y:FLOOR-26, w:26, h:26, type:'zapato',  vx:-1.5,patrolX1:1100,patrolX2:1200},
-    {x:1430, y:FLOOR-22, w:50, h:22, type:'ropa',   vx:0},
-    {x:1600, y:FLOOR-26, w:26, h:26, type:'zapato',  vx:1.8, patrolX1:1560,patrolX2:1660},
-    {x:1900, y:FLOOR-22, w:50, h:22, type:'ropa',   vx:0},
+    {x:380,  y:FLOOR-46, w:38, h:46, type:'tijeras', vx:1.2,  patrolX1:340,  patrolX2:460},
+    {x:580,  y:FLOOR-26, w:26, h:26, type:'zapato',  vx:1.5,  patrolX1:540,  patrolX2:650},
+    {x:980,  y:FLOOR-46, w:38, h:46, type:'tijeras', vx:-1.4, patrolX1:920,  patrolX2:1060},
+    {x:1150, y:FLOOR-26, w:26, h:26, type:'zapato',  vx:-1.5, patrolX1:1100, patrolX2:1200},
+    {x:1430, y:FLOOR-46, w:38, h:46, type:'tijeras', vx:1.6,  patrolX1:1370, patrolX2:1520},
+    {x:1600, y:FLOOR-26, w:26, h:26, type:'zapato',  vx:1.8,  patrolX1:1560, patrolX2:1660},
+    {x:1900, y:FLOOR-46, w:38, h:46, type:'tijeras', vx:-1.3, patrolX1:1840, patrolX2:1980},
     // almohadas spawn
     {x:-99, y:-30, w:40, h:20, type:'almohada', active:false, spawnX:2600, timer:0, spawnInterval:180, vx:-4, vy:-3},
     {x:-99, y:-30, w:40, h:20, type:'almohada', active:false, spawnX:2600, timer:90, spawnInterval:180, vx:-4, vy:-5},
@@ -1272,11 +1333,13 @@ function update() {
       }
       continue;
     }
-    if(o.type==='ropa') {
-      // must jump or crawl over — hurts only if standing
-      if(p.hurtTimer===0 && p.diaperShield===0 && !p.crawling && rectOverlap(p,o)) {
-        p.hp--; p.hurtTimer=80; p.vy=-7;
-        spawnParticles(p.x+p.w/2,p.y,'#FF4444',6); showMsg('¡Tropezaste con la ropa! 👕');
+    if(o.type==='tijeras') {
+      o.x += o.vx;
+      if(o.x < o.patrolX1 || o.x > o.patrolX2) o.vx *= -1;
+      if(p.hurtTimer===0 && p.diaperShield===0 && rectOverlap(p,o)) {
+        p.hp--; p.hurtTimer=90; p.vy=-9; p.vx = p.x < o.x+o.w/2 ? -6 : 6;
+        spawnParticles(p.x+p.w/2, p.y, '#FF1744', 10, '✂️');
+        showMsg('¡Las tijeras! ✂️ ¡Sáltalas!');
         if(p.hp<=0){game.state='gameover';return;}
       }
       continue;
