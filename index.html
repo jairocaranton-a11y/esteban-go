@@ -757,7 +757,30 @@ function drawObstacle(o) {
     drawTijeras(game.frame);
     ctx.restore(); return;
   }
-  const emojis={toycar:'🚗',block:'🧸',cucaracha:'🪳',olla:'🪣',charco:'💧',almohada:'🛏️',zapato:'👟'};
+  if(o.type==='almohada') {
+    // estela de movimiento
+    ctx.save();
+    for(let t=1;t<=3;t++) {
+      ctx.globalAlpha = 0.12 * (4-t);
+      ctx.fillStyle='#CE93D8';
+      ctx.beginPath(); ctx.roundRect(t*8, -o.h/2, o.w, o.h, 6); ctx.fill();
+    }
+    ctx.globalAlpha=1;
+    // cuerpo almohada
+    ctx.fillStyle='#F8BBD0';
+    ctx.beginPath(); ctx.roundRect(-o.w/2, -o.h/2, o.w, o.h, 7); ctx.fill();
+    ctx.strokeStyle='#CE93D8'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.roundRect(-o.w/2+3, -o.h/2+3, o.w-6, o.h-6, 5); ctx.stroke();
+    // costura central
+    ctx.strokeStyle='rgba(255,255,255,0.6)'; ctx.lineWidth=1.5; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(-o.w/2+6,0); ctx.lineTo(o.w/2-6,0); ctx.stroke();
+    ctx.setLineDash([]);
+    // estrellas de velocidad
+    ctx.fillStyle='#FFD700'; ctx.font='10px serif'; ctx.textAlign='center';
+    ctx.fillText('💨', o.w/2+8, 5);
+    ctx.restore(); return;
+  }
+  const emojis={toycar:'🚗',block:'🧸',cucaracha:'🪳',olla:'🪣',charco:'💧',zapato:'👟'};
   ctx.font=(o.type==='cucaracha'?'22':'30')+'px serif';
   ctx.textAlign='center'; ctx.textBaseline='middle';
   if(o.type==='charco') {
@@ -1120,9 +1143,11 @@ function buildLevel3() {
     {x:1430, y:FLOOR-46, w:38, h:46, type:'tijeras', vx:1.6,  patrolX1:1370, patrolX2:1520},
     {x:1600, y:FLOOR-26, w:26, h:26, type:'zapato',  vx:1.8,  patrolX1:1560, patrolX2:1660},
     {x:1900, y:FLOOR-46, w:38, h:46, type:'tijeras', vx:-1.3, patrolX1:1840, patrolX2:1980},
-    // almohadas spawn
-    {x:-99, y:-30, w:40, h:20, type:'almohada', active:false, spawnX:2600, timer:0, spawnInterval:180, vx:-4, vy:-3},
-    {x:-99, y:-30, w:40, h:20, type:'almohada', active:false, spawnX:2600, timer:90, spawnInterval:180, vx:-4, vy:-5},
+    // almohadas horizontales a distintas alturas
+    {x:-99, y:FLOOR-85,  w:46, h:26, type:'almohada', active:false, spawnX:2720, baseY:FLOOR-85,  timer:0,   spawnInterval:140, vx:-5.5},
+    {x:-99, y:FLOOR-160, w:46, h:26, type:'almohada', active:false, spawnX:2720, baseY:FLOOR-160, timer:50,  spawnInterval:140, vx:-6.5},
+    {x:-99, y:FLOOR-85,  w:46, h:26, type:'almohada', active:false, spawnX:2720, baseY:FLOOR-85,  timer:100, spawnInterval:140, vx:-5},
+    {x:-99, y:FLOOR-230, w:46, h:26, type:'almohada', active:false, spawnX:2720, baseY:FLOOR-230, timer:30,  spawnInterval:170, vx:-7},
   ];
   const collectibles = [
     {x:140,  y:BY-40,    w:32, h:32, type:'tetero'},
@@ -1306,20 +1331,34 @@ function update() {
 
   // ─ OBSTACLES ─
   for(const o of game.obstacles) {
-    if(o.type==='olla' || o.type==='almohada') {
-      // spawner / projectile
+    if(o.type==='olla') {
       if(!o.active) {
         o.timer = (o.timer||0) + 1;
-        if(o.timer >= o.spawnInterval) {
-          o.active=true; o.timer=0;
-          o.x = o.spawnX; o.y=-30; o.vy = o.vy||0; o.vy=0;
-        }
+        if(o.timer >= o.spawnInterval) { o.active=true; o.timer=0; o.x=o.spawnX; o.y=-30; o.vy=0; }
       } else {
-        o.vy += 0.4; o.x += (o.type==='almohada'?(o.vx||0):0); o.y += o.vy;
+        o.vy += 0.4; o.y += o.vy;
         if(o.y > FLOOR+40) { o.active=false; o.timer=0; }
         if(p.hurtTimer===0 && p.diaperShield===0 && o.x>-50 && rectOverlap(p,o)) {
           p.hp--; p.hurtTimer=80; p.vy=-8;
           spawnParticles(p.x+p.w/2,p.y,'#FF4444',8); showMsg('¡Ay! 😢');
+          if(p.hp<=0){game.state='gameover';return;}
+        }
+      }
+      continue;
+    }
+    if(o.type==='almohada') {
+      if(!o.active) {
+        o.timer = (o.timer||0) + 1;
+        if(o.timer >= o.spawnInterval) {
+          o.active=true; o.timer=0;
+          o.x = o.spawnX; o.y = o.baseY;
+        }
+      } else {
+        o.x += o.vx; // horizontal puro, sin gravedad
+        if(o.x < -80) { o.active=false; o.timer=0; }
+        if(p.hurtTimer===0 && p.diaperShield===0 && rectOverlap(p,o)) {
+          p.hp--; p.hurtTimer=80; p.vx = p.x < o.x+o.w/2 ? -5 : 5; p.vy=-6;
+          spawnParticles(p.x+p.w/2,p.y,'#CE93D8',10,'🛏️'); showMsg('¡Almohada voladora! 🛏️');
           if(p.hp<=0){game.state='gameover';return;}
         }
       }
