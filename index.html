@@ -134,14 +134,17 @@ const SFX = {
   hurt:       () => { beep(200,0.06,0.35,'sawtooth'); beep(120,0.15,0.3,'sawtooth',0.06); },
   collect:    () => { beep(880,0.06,0.22); beep(1108,0.06,0.22,'square',0.07); beep(1320,0.12,0.22,'square',0.13); },
   bossHit:    () => { beep(330,0.05,0.3,'sawtooth'); beep(220,0.12,0.28,'sawtooth',0.06); },
-  bossAppear: () => { [160,200,250,315].forEach((f,i)=>beep(f,0.14,0.3,'square',i*0.1)); },
+  bossAppear: () => {
+    // Arpeggio ascendente en Do mayor, frecuencias audibles
+    [262,330,392,523,659].forEach((f,i)=>beep(f,0.18,0.35,'square',i*0.13));
+  },
   levelup:    () => { [523,659,784,1047].forEach((f,i)=>beep(f,0.15,0.28,'square',i*0.13)); },
   win:        () => { [523,659,784,1047,784,1047,1319].forEach((f,i)=>beep(f,0.18,0.28,'square',i*0.15)); },
   gameover:   () => { [440,392,330,262].forEach((f,i)=>beep(f,0.22,0.3,'sawtooth',i*0.2)); }
 };
 
-// Mario-style background music loop
-const _Q=0.11, _H=0.22;
+// Mario-style background music loop  (~200 BPM, 8th note = 0.15 s)
+const _Q=0.15, _H=0.30;
 const MELODY=[
   [659,_Q],[659,_Q],[0,_Q],[659,_Q],[0,_Q],[523,_Q],[659,_Q],[0,_Q],
   [784,_H],[0,_H],[392,_H],[0,_H],
