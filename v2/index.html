@@ -213,13 +213,12 @@ function rectOverlap(a,b){
 
 // ── THREE.JS 3D ENGINE ────────────────────────────────────────────────────────
 let R3 = null, scene3, camera3;
-// Camera Z so that 1 Three.js unit ≈ 1 pixel (FOV 45°)
 const _CAMZ = Math.round(H / (2 * Math.tan(22.5 * Math.PI / 180)));
 
 function init3D() {
   const c3d = document.getElementById('c3d');
   R3 = new THREE.WebGLRenderer({ canvas: c3d, antialias: true });
-  R3.setPixelRatio(1); // match 2D canvas resolution exactly
+  R3.setPixelRatio(1);
   R3.setSize(W, H, false);
 
   scene3 = new THREE.Scene();
@@ -233,8 +232,7 @@ function init3D() {
   const d = new THREE.DirectionalLight(0xffffff, 0.75);
   d.position.set(200, 400, _CAMZ * 0.6);
   scene3.add(d);
-  const h = new THREE.HemisphereLight(0xffffcc, 0x443322, 0.35);
-  scene3.add(h);
+  scene3.add(new THREE.HemisphereLight(0xffffcc, 0x443322, 0.35));
 }
 
 let _meshes3 = [];
@@ -242,24 +240,167 @@ function _disposeAll() {
   for(const m of _meshes3) {
     scene3.remove(m);
     m.geometry.dispose();
-    if(Array.isArray(m.material)) m.material.forEach(x => x.dispose());
-    else m.material.dispose();
+    if(Array.isArray(m.material)) m.material.forEach(x => { if(x.map) x.map.dispose(); x.dispose(); });
+    else { if(m.material.map) m.material.map.dispose(); m.material.dispose(); }
   }
   _meshes3 = [];
 }
 
 function _box3(w, h, d, hex) {
-  const mesh = new THREE.Mesh(
-    new THREE.BoxGeometry(w, h, d),
-    new THREE.MeshLambertMaterial({ color: hex })
-  );
-  return mesh;
+  return new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshLambertMaterial({ color: hex }));
+}
+function _texMesh(geo, tex, tintHex) {
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  return new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ map: tex, color: tintHex || 0xffffff }));
+}
+
+// ── CANVAS TEXTURES per room ──────────────────────────────────────────────────
+function _wallTex(theme) {
+  const cv = document.createElement('canvas'); cv.width = 1024; cv.height = 512;
+  const c = cv.getContext('2d');
+
+  if(theme === 'sala') {
+    c.fillStyle = '#FFCCBC'; c.fillRect(0, 0, 1024, 512);
+    // subtle diagonal wallpaper stripes
+    c.strokeStyle = 'rgba(220,120,80,0.18)'; c.lineWidth = 2;
+    for(let x = -512; x < 1536; x += 32) {
+      c.beginPath(); c.moveTo(x, 0); c.lineTo(x + 512 * 0.7, 512); c.stroke();
+    }
+    // Picture frames
+    function frm(fx, fy, fw, fh, border, art) {
+      c.fillStyle = border; c.fillRect(fx - 5, fy - 5, fw + 10, fh + 10);
+      c.fillStyle = '#fff'; c.fillRect(fx, fy, fw, fh);
+      c.fillStyle = art; c.fillRect(fx + 6, fy + 6, fw - 12, fh - 12);
+      // canvas detail lines
+      c.strokeStyle = 'rgba(0,0,0,0.08)'; c.lineWidth = 1;
+      c.beginPath(); c.moveTo(fx + 6, fy + fh * 0.5); c.lineTo(fx + fw - 6, fy + fh * 0.5); c.stroke();
+    }
+    frm(60,  40,  96, 160, '#6D4C41', '#FFB74D');
+    frm(200, 30, 120, 180, '#795548', '#E53935');
+    frm(380, 50,  80, 120, '#5D4037', '#42A5F5');
+    frm(520, 35, 100, 140, '#4E342E', '#66BB6A');
+    frm(700, 45,  80, 100, '#6D4C41', '#AB47BC');
+    frm(860, 30,  90, 155, '#795548', '#FF7043');
+    // Flower motifs between frames
+    c.fillStyle = '#FF80AB'; c.font = '32px serif';
+    c.fillText('🌸', 470, 160); c.fillText('🌸', 640, 200);
+    // baseboard
+    c.fillStyle = '#D7CCC8'; c.fillRect(0, 445, 1024, 67);
+    c.fillStyle = '#BCAAA4'; c.fillRect(0, 438, 1024, 10);
+    c.fillStyle = '#A1887F'; c.fillRect(0, 435, 1024, 4);
+
+  } else if(theme === 'cocina') {
+    c.fillStyle = '#FAFAFA'; c.fillRect(0, 0, 1024, 512);
+    // tile grid
+    c.strokeStyle = '#CFD8DC'; c.lineWidth = 2;
+    for(let tx = 0; tx < 1024; tx += 56) { c.beginPath(); c.moveTo(tx, 0); c.lineTo(tx, 512); c.stroke(); }
+    for(let ty = 0; ty < 512;  ty += 56) { c.beginPath(); c.moveTo(0, ty); c.lineTo(1024, ty); c.stroke(); }
+    // subtle tile gloss
+    c.fillStyle = 'rgba(255,255,255,0.25)';
+    for(let tx = 2; tx < 1024; tx += 56) for(let ty = 2; ty < 512; ty += 56) c.fillRect(tx, ty, 24, 18);
+    // Windows
+    function win(wx, wy, ww, wh) {
+      // sky fill
+      c.fillStyle = '#B2EBF2'; c.fillRect(wx, wy, ww, wh);
+      // outer frame
+      c.strokeStyle = '#78909C'; c.lineWidth = 5; c.strokeRect(wx, wy, ww, wh);
+      // dividers
+      c.strokeStyle = '#90A4AE'; c.lineWidth = 3;
+      c.beginPath(); c.moveTo(wx + ww / 2, wy); c.lineTo(wx + ww / 2, wy + wh); c.stroke();
+      c.beginPath(); c.moveTo(wx, wy + wh * 0.5); c.lineTo(wx + ww, wy + wh * 0.5); c.stroke();
+      // curtains
+      c.globalAlpha = 0.55;
+      c.fillStyle = '#FFF176';
+      c.beginPath(); c.moveTo(wx - 8, wy - 4); c.quadraticCurveTo(wx + 12, wy + wh * 0.5, wx, wy + wh + 5); c.lineTo(wx + 14, wy + wh + 5); c.quadraticCurveTo(wx + 20, wy + wh * 0.5, wx + 14, wy - 4); c.closePath(); c.fill();
+      c.beginPath(); c.moveTo(wx + ww - 14, wy - 4); c.quadraticCurveTo(wx + ww - 20, wy + wh * 0.5, wx + ww - 14, wy + wh + 5); c.lineTo(wx + ww + 8, wy + wh + 5); c.quadraticCurveTo(wx + ww - 12, wy + wh * 0.5, wx + ww + 8, wy - 4); c.closePath(); c.fill();
+      c.globalAlpha = 1;
+    }
+    win( 60, 28, 140, 190);
+    win(390, 22, 150, 200);
+    win(730, 28, 140, 190);
+    // yellow top strip
+    c.fillStyle = '#F9A825'; c.fillRect(0, 0, 1024, 24);
+    c.fillStyle = '#FFF176'; c.fillRect(0, 0, 1024, 12);
+    // baseboard
+    c.fillStyle = '#EEEEEE'; c.fillRect(0, 450, 1024, 62);
+    c.strokeStyle = '#9E9E9E'; c.lineWidth = 3; c.beginPath(); c.moveTo(0, 449); c.lineTo(1024, 449); c.stroke();
+
+  } else { // habitacion
+    const gr = c.createLinearGradient(0, 0, 0, 512);
+    gr.addColorStop(0, '#1A0A3A'); gr.addColorStop(0.55, '#311B92'); gr.addColorStop(1, '#4527A0');
+    c.fillStyle = gr; c.fillRect(0, 0, 1024, 512);
+    // galaxy glow
+    const gg = c.createRadialGradient(400, 200, 0, 400, 200, 300);
+    gg.addColorStop(0, 'rgba(100,60,220,0.25)'); gg.addColorStop(1, 'rgba(0,0,0,0)');
+    c.fillStyle = gg; c.fillRect(0, 0, 1024, 512);
+    // fixed star positions (deterministic)
+    const STARS = [
+      [55,55],[120,30],[200,80],[300,20],[420,60],[540,35],[650,75],[760,25],[880,55],[960,40],
+      [80,160],[180,130],[280,170],[380,120],[490,155],[590,135],[700,165],[810,125],[920,150],[1000,170],
+      [40,240],[150,260],[260,230],[380,270],[500,245],[620,265],[740,235],[850,270],[970,250],
+      [100,330],[240,310],[370,340],[500,320],[640,345],[770,315],[900,335],
+    ];
+    for(const [sx, sy] of STARS) {
+      const r = (sx % 3 === 0 ? 2.2 : sx % 2 === 0 ? 1.5 : 1.0);
+      const a = 0.55 + (sx % 10) * 0.04;
+      c.fillStyle = `rgba(255,255,255,${a})`; c.beginPath(); c.arc(sx, sy, r, 0, Math.PI*2); c.fill();
+      if(r > 1.8) { // twinkle cross on bright stars
+        c.strokeStyle = `rgba(255,255,255,0.25)`; c.lineWidth = 0.8;
+        c.beginPath(); c.moveTo(sx - 5, sy); c.lineTo(sx + 5, sy); c.stroke();
+        c.beginPath(); c.moveTo(sx, sy - 5); c.lineTo(sx, sy + 5); c.stroke();
+      }
+    }
+    // Moon
+    c.fillStyle = '#FFF9C4'; c.beginPath(); c.arc(820, 90, 52, 0, Math.PI*2); c.fill();
+    c.fillStyle = '#311B92'; c.beginPath(); c.arc(835, 80, 44, 0, Math.PI*2); c.fill(); // crescent shadow
+    // baseboard (wood)
+    c.fillStyle = '#6D4C41'; c.fillRect(0, 448, 1024, 64);
+    c.fillStyle = '#8D6E63'; c.fillRect(0, 442, 1024, 8);
+  }
+  const tex = new THREE.CanvasTexture(cv);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}
+
+function _floorTex(theme) {
+  const cv = document.createElement('canvas'); cv.width = 256; cv.height = 64;
+  const c = cv.getContext('2d');
+
+  if(theme === 'sala') {
+    c.fillStyle = '#C62828'; c.fillRect(0, 0, 256, 64);
+    c.strokeStyle = '#B71C1C'; c.lineWidth = 1.5;
+    for(let x = 0; x < 256; x += 42) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, 64); c.stroke(); }
+    for(let y = 0; y < 64;  y += 32) { c.beginPath(); c.moveTo(0, y); c.lineTo(256, y); c.stroke(); }
+    c.strokeStyle = '#7B0000'; c.lineWidth = 5; c.strokeRect(4, 4, 248, 56);
+    c.strokeStyle = '#EF9A9A'; c.lineWidth = 1; c.strokeRect(8, 8, 240, 48);
+  } else if(theme === 'cocina') {
+    const ts = 32;
+    for(let tx = 0; tx < 256; tx += ts) for(let ty = 0; ty < 64; ty += ts) {
+      c.fillStyle = ((Math.floor(tx/ts)+Math.floor(ty/ts))%2===0) ? '#F5F5F5' : '#1C1C1C';
+      c.fillRect(tx, ty, ts, ts);
+    }
+    c.strokeStyle = '#9E9E9E'; c.lineWidth = 1;
+    for(let tx = 0; tx < 256; tx += ts) { c.beginPath(); c.moveTo(tx, 0); c.lineTo(tx, 64); c.stroke(); }
+    for(let ty = 0; ty < 64;  ty += ts) { c.beginPath(); c.moveTo(0, ty); c.lineTo(256, ty); c.stroke(); }
+  } else { // habitacion wood planks
+    const planks = ['#6D4C41','#795548','#7B5E52','#8D6E63'];
+    const ph = 16;
+    for(let ty = 0; ty < 64; ty += ph) {
+      c.fillStyle = planks[Math.floor(ty/ph) % planks.length]; c.fillRect(0, ty, 256, ph);
+      c.strokeStyle = '#5D4037'; c.lineWidth = 2; c.beginPath(); c.moveTo(0, ty); c.lineTo(256, ty); c.stroke();
+      c.strokeStyle = 'rgba(80,40,20,0.15)'; c.lineWidth = 1;
+      for(let gx = 10 + (ty*7)%30; gx < 256; gx += 110) { c.beginPath(); c.moveTo(gx, ty); c.lineTo(gx + 50, ty + ph); c.stroke(); }
+    }
+  }
+  const tex = new THREE.CanvasTexture(cv);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  return tex;
 }
 
 const _TC = {
-  sala:       { bg:0xFFCCBC, fog:0xFFCCBC, floor:0xBCAAA4, wall:0xFFE0B2 },
-  cocina:     { bg:0xFFF9C4, fog:0xFFF9C4, floor:0xE0E0E0, wall:0xFFF9C4 },
-  habitacion: { bg:0xD1C4E9, fog:0xD1C4E9, floor:0xA1887F, wall:0xD1C4E9 },
+  sala:       { bg:0xFFCCBC, fog:0xFFCCBC, floor:0xBCAAA4 },
+  cocina:     { bg:0xFFF9C4, fog:0xFFF9C4, floor:0xE0E0E0 },
+  habitacion: { bg:0xD1C4E9, fog:0xD1C4E9, floor:0xA1887F },
 };
 
 const _PC = {
@@ -278,35 +419,115 @@ function build3DLevel() {
   scene3.background = new THREE.Color(tc.bg);
   scene3.fog = new THREE.FogExp2(tc.fog, 0.0007);
 
-  // Back wall — far behind everything
-  const wall = _box3(FLEN, H + 200, 25, tc.wall);
+  // Back wall with texture
+  const wt = _wallTex(theme);
+  wt.repeat.set(Math.ceil(FLEN / 1024), 1);
+  const wall = _texMesh(new THREE.BoxGeometry(FLEN, H + 200, 25), wt);
   wall.position.set(lvl.width / 2, H / 2, -280);
   scene3.add(wall); _meshes3.push(wall);
 
-  // Floor block (game: FLOOR..H → three_y: 0..60, center=30)
+  // Floor with texture
   const flH3 = H - FLOOR; // = 60
-  const floor = _box3(FLEN, flH3 + 30, 110, tc.floor);
+  const ft = _floorTex(theme);
+  ft.repeat.set(Math.ceil(FLEN / 256), Math.ceil((flH3 + 30) / 64));
+  const floor = _texMesh(new THREE.BoxGeometry(FLEN, flH3 + 30, 110), ft);
   floor.position.set(lvl.width / 2, flH3 / 2 - 15, -30);
   scene3.add(floor); _meshes3.push(floor);
 
-  // Floor top ledge (brighter edge)
-  const ledge = _box3(FLEN, 8, 26, tc.floor + 0x181818);
+  // Floor front ledge
+  const ledge = _box3(FLEN, 8, 26, tc.floor);
   ledge.position.set(lvl.width / 2, flH3 - 4, 0);
   scene3.add(ledge); _meshes3.push(ledge);
 
   // Platforms
   for(const p of game.platforms) {
-    const hex  = parseInt((_PC[p.type] || '#8D6E63').slice(1), 16);
-    const dep  = p.type === 'sofa' ? 70 : p.type === 'bed' ? 75 : 50;
-    // Body: game top=p.y → three_y = H - p.y
+    const hex = parseInt((_PC[p.type] || '#8D6E63').slice(1), 16);
+    const dep = p.type === 'sofa' ? 70 : p.type === 'bed' ? 75 : 50;
     const body = _box3(p.w, p.h, dep, hex);
     body.position.set(p.x + p.w / 2, H - p.y - p.h / 2, -12);
     scene3.add(body); _meshes3.push(body);
-    // Highlight cap on top surface
-    const capHex = Math.min(hex + 0x181818, 0xFFFFFF);
-    const cap  = _box3(p.w + 4, 6, dep + 8, capHex);
+    const cap = _box3(p.w + 4, 6, dep + 8, Math.min(hex + 0x181818, 0xFFFFFF));
     cap.position.set(p.x + p.w / 2, H - p.y + 3, -12);
     scene3.add(cap); _meshes3.push(cap);
+  }
+
+  // Theme decorations
+  _addDecorations(theme, lvl, FLEN);
+}
+
+function _addDecorations(theme, lvl, FLEN) {
+  if(theme === 'sala') {
+    // Hanging ceiling lamp at regular intervals
+    for(let lx = 350; lx < lvl.width; lx += 480) {
+      const cord = _box3(4, 50, 4, 0x5D4037);
+      cord.position.set(lx, H - 10, -180);
+      scene3.add(cord); _meshes3.push(cord);
+      const shade = _box3(50, 20, 50, 0xF9A825);
+      shade.position.set(lx, H - 40, -180);
+      scene3.add(shade); _meshes3.push(shade);
+      // Glow disc
+      const glow = new THREE.Mesh(new THREE.CircleGeometry(35, 16),
+        new THREE.MeshBasicMaterial({ color: 0xFFF9C4, transparent: true, opacity: 0.14, side: THREE.DoubleSide }));
+      glow.rotation.x = -Math.PI / 2;
+      glow.position.set(lx, H - 52, -180);
+      scene3.add(glow); _meshes3.push(glow);
+    }
+    // Top crown molding
+    const crown = _box3(FLEN, 14, 20, 0xD7CCC8);
+    crown.position.set(lvl.width / 2, H - 8, -270);
+    scene3.add(crown); _meshes3.push(crown);
+
+  } else if(theme === 'cocina') {
+    // Window light shafts
+    for(let wx = 200; wx < lvl.width; wx += 360) {
+      const shaft = new THREE.Mesh(new THREE.PlaneGeometry(70, H * 0.6),
+        new THREE.MeshBasicMaterial({ color: 0xFFFDE7, transparent: true, opacity: 0.07, side: THREE.DoubleSide }));
+      shaft.position.set(wx, H * 0.55, -160);
+      shaft.rotation.y = 0.12;
+      scene3.add(shaft); _meshes3.push(shaft);
+    }
+    // Pot hanging from ceiling
+    for(let px = 280; px < lvl.width; px += 550) {
+      const pot = _box3(28, 32, 28, 0xEF9A9A);
+      pot.position.set(px, H - 30, -200);
+      scene3.add(pot); _meshes3.push(pot);
+      const stem = _box3(5, 40, 5, 0x388E3C);
+      stem.position.set(px, H - 5, -200);
+      scene3.add(stem); _meshes3.push(stem);
+    }
+    // Top yellow border 3D strip
+    const border = _box3(FLEN, 18, 15, 0xF9A825);
+    border.position.set(lvl.width / 2, H - 10, -272);
+    scene3.add(border); _meshes3.push(border);
+
+  } else { // habitacion
+    // Floating star orbs
+    const starPos = [180,480,780,1100,1400,1700,2050,2350];
+    for(const sx of starPos) {
+      const r = 5 + (sx % 4) * 1.5;
+      const star = new THREE.Mesh(new THREE.SphereGeometry(r, 10, 10),
+        new THREE.MeshBasicMaterial({ color: 0xFFF9C4 }));
+      star.position.set(sx, H - 40 - (sx % 60), -220);
+      scene3.add(star); _meshes3.push(star);
+      // soft halo
+      const halo = new THREE.Mesh(new THREE.SphereGeometry(r * 2.5, 10, 10),
+        new THREE.MeshBasicMaterial({ color: 0xFFFFAA, transparent: true, opacity: 0.10 }));
+      halo.position.copy(star.position);
+      scene3.add(halo); _meshes3.push(halo);
+    }
+    // Moon glow (large emissive sphere near ceiling on back wall)
+    const moon = new THREE.Mesh(new THREE.SphereGeometry(45, 20, 20),
+      new THREE.MeshBasicMaterial({ color: 0xFFF9C4 }));
+    moon.position.set(lvl.width * 0.75, H - 60, -265);
+    scene3.add(moon); _meshes3.push(moon);
+    const moonGlow = new THREE.Mesh(new THREE.SphereGeometry(80, 16, 16),
+      new THREE.MeshBasicMaterial({ color: 0xFFF176, transparent: true, opacity: 0.08 }));
+    moonGlow.position.copy(moon.position);
+    scene3.add(moonGlow); _meshes3.push(moonGlow);
+    // Top ceiling strip (dark)
+    const ceil = _box3(FLEN, 12, 18, 0x1A0A3A);
+    ceil.position.set(lvl.width / 2, H - 7, -272);
+    scene3.add(ceil); _meshes3.push(ceil);
   }
 }
 
