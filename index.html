@@ -104,29 +104,45 @@ btnBind('btnLeft','left'); btnBind('btnRight','right');
 btnBind('btnJump','jump'); btnBind('btnCrawl','crawl');
 
 // ── AUDIO ─────────────────────────────────────────────────────────────────────
-let _actx = null;
+let _actx = null, _master = null;
 function actx() {
   if(!_actx) _actx = new (window.AudioContext || window.webkitAudioContext)();
   return _actx;
+}
+// Cadena maestra: gain → lowpass suaviza las ondas cuadradas (menos ásperas)
+function master() {
+  const ac = actx();
+  if(!_master) {
+    _master = ac.createGain();
+    _master.gain.value = 0.9;
+    const lp = ac.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = 9500;
+    _master.connect(lp); lp.connect(ac.destination);
+  }
+  return _master;
+}
+function beepAt(freq, dur, vol, type, t) {
+  try {
+    const ac = actx();
+    const osc  = ac.createOscillator();
+    const gain = ac.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t);
+    // ataque de 8ms: elimina el "click" al inicio de cada nota
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.linearRampToValueAtTime(vol, t + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc.connect(gain);
+    gain.connect(master());
+    osc.start(t);
+    osc.stop(t + dur + 0.02);
+  } catch(e) {}
 }
 function beep(freq, dur, vol, type, when) {
   vol  = vol  === undefined ? 0.25 : vol;
   type = type || 'square';
   when = when || 0;
-  try {
-    const ac = actx();
-    const t  = ac.currentTime + when;
-    const osc  = ac.createOscillator();
-    const gain = ac.createGain();
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, t);
-    gain.gain.setValueAtTime(vol, t);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    osc.connect(gain);
-    gain.connect(ac.destination);
-    osc.start(t);
-    osc.stop(t + dur + 0.02);
-  } catch(e) {}
+  beepAt(freq, dur, vol, type, actx().currentTime + when);
 }
 
 const SFX = {
@@ -143,9 +159,10 @@ const SFX = {
         const o = ac.createOscillator(), g = ac.createGain();
         o.type = 'square';
         o.frequency.value = freq;
-        g.gain.setValueAtTime(vol, t);
+        g.gain.setValueAtTime(0.001, t);
+        g.gain.linearRampToValueAtTime(vol, t + 0.01);
         g.gain.linearRampToValueAtTime(0.001, t + dur);
-        o.connect(g); g.connect(ac.destination);
+        o.connect(g); g.connect(master());
         o.start(t); o.stop(t + dur + 0.01);
       }
       hit(now,        220, 0.14, 0.9);
@@ -171,23 +188,34 @@ const MELODY=[
   [0,_Q*0.5],[659,_H],[0,_Q*0.5],[523,_Q],[587,_Q],[494,_Q*1.5]
 ];
 
-let _musicOn=false, _musicTid=null, _musicIdx=0;
+let _musicOn=false, _musicTid=null, _musicIdx=0, _musicNext=0;
 function startMusic(){
   if(_musicOn) return;
   _musicOn=true; _musicIdx=0;
-  try{ actx().resume(); }catch(e){}
+  const ac=actx();
+  try{ ac.resume(); }catch(e){}
+  _musicNext = ac.currentTime + 0.06;
   _musicTick();
 }
 function stopMusic(){
   _musicOn=false;
   if(_musicTid){ clearTimeout(_musicTid); _musicTid=null; }
 }
+// Scheduler con lookahead sobre el reloj de audio: cero drift aunque el
+// frame rate baje — las notas se agendan 300ms por adelantado
 function _musicTick(){
   if(!_musicOn) return;
-  const [freq,dur]=MELODY[_musicIdx%MELODY.length];
-  if(freq>0) beep(freq, dur*0.85, 0.1, 'square');
-  _musicTid=setTimeout(_musicTick, dur*1000);
-  _musicIdx++;
+  const ac = actx();
+  while(_musicNext < ac.currentTime + 0.30) {
+    const [freq,dur] = MELODY[_musicIdx % MELODY.length];
+    if(freq>0) {
+      beepAt(freq,   dur*0.85, 0.10, 'square',   _musicNext);
+      beepAt(freq/2, dur*0.90, 0.06, 'triangle', _musicNext); // bajo una octava abajo
+    }
+    _musicNext += dur;
+    _musicIdx++;
+  }
+  _musicTid = setTimeout(_musicTick, 90);
 }
 
 // ── UTILS ─────────────────────────────────────────────────────────────────────
@@ -1882,6 +1910,7 @@ function drawGameOver() {
 }
 
 // ── MAIN RENDER ───────────────────────────────────────────────────────────────
+let _vig = null;
 function render() {
   ctx.clearRect(0,0,W,H);
   const camX = game.camX|0;
@@ -1975,11 +2004,13 @@ function render() {
     ctx.restore();
   }
 
-  // depth vignette (2.5D depth effect)
-  const vig = ctx.createRadialGradient(W/2, H*0.5, H*0.25, W/2, H*0.5, H*0.85);
-  vig.addColorStop(0, 'rgba(0,0,0,0)');
-  vig.addColorStop(1, 'rgba(0,0,0,0.32)');
-  ctx.fillStyle = vig; ctx.fillRect(0,0,W,H);
+  // depth vignette (2.5D depth effect) — gradiente cacheado, no se recrea por frame
+  if(!_vig) {
+    _vig = ctx.createRadialGradient(W/2, H*0.5, H*0.25, W/2, H*0.5, H*0.85);
+    _vig.addColorStop(0, 'rgba(0,0,0,0)');
+    _vig.addColorStop(1, 'rgba(0,0,0,0.32)');
+  }
+  ctx.fillStyle = _vig; ctx.fillRect(0,0,W,H);
 
   // HUD (on top, screen space)
   drawHUD();
